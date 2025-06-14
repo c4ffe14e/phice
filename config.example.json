@@ -1,0 +1,9 @@
+{
+    "ENABLE_RSS": true,
+    "DEFAULT_SETTINGS": {
+        "theme": "default",
+        "proxy": "on",
+        "comments_sort": "filtered",
+        "expand": "off"
+    }
+}

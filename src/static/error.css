@@ -1,0 +1,15 @@
+#error_message {
+    width: 100%;
+    background-color: var(--background2);
+    border: 2px solid var(--accent);
+    border-radius: 8px;
+    padding: 8px;
+}
+
+#error_message > h1 {
+    margin-left: 8px;
+}
+
+#error_message > p {
+    margin: 8px 0;
+}

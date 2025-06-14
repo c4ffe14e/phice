@@ -1,0 +1,16 @@
+{% extends "base.html.jinja" %}
+{% from "macros.html.jinja" import icon, search_bar %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}" />
+{% endblock head %}
+
+{% block content %}
+    <div id="whole_screen">
+        <div class="home_logo">
+            <svg class="logo"><use href="{{ url_for('static', filename='logo.svg') }}#logo"></use></svg>
+            <span>Phice</span>
+        </div>
+        {{ search_bar() }}
+    </div>
+{% endblock content %}

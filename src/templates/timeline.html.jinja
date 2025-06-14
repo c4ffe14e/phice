@@ -1,0 +1,77 @@
+{% extends "base.html.jinja" %}
+{% from "macros.html.jinja" import icon, Post, expandable_p %}
+{% from "context_macros.html.jinja" import navigation_buttons with context %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='timeline.css') }}" />
+{% endblock head %}
+
+{% block content %}
+    <div id="timeline_cover">
+        {% if info.cover_url %}
+            <img src="{{ info.cover_url | proxy }}" alt="{{ info.name }}'s profile cover" />
+        {% endif %}
+    </div>
+    <div id="timeline">
+        <section id="timeline_info" class="card">
+            <div id="timeline_header">
+                {% if not info.is_group %}
+                    <img id="timeline_picture" src="{{ info.picture_url | proxy }}" alt="{{ info.name }}'s profile picture" />
+                {% endif %}
+                <div>
+                    <span class="profile_name">{{ info.name }}</span>{{
+                        icon("circle-check", class="profile_checkmark") if info.verified
+                    }}
+                    <br />
+                    <span id="timeline_stat">{{ info.members + " Members" if info.members }}{{
+                        info.followers + " Followers" if info.followers
+                    }}{{ " • " + info.following + " Following" if info.following }}{{
+                        " • " + info.likes + " Likes" if info.likes
+                    }}</span>
+                </div>
+            </div>
+            <div id="timeline_intro">
+                {{ expandable_p(info.description, class="timeline_description") if info.description }}
+                {% if info.info %}
+                    <hr />
+                    {% for i in info.info %}
+                        <a {% if i.url %}href="{{ i.url }}"{% endif %}>
+                            <div class="timeline_info_cards">
+                                {%- if i.type == "website" -%}
+                                    {{ icon("link") }}
+                                {%- elif i.type in ("address", "hometown", "current_city") -%}
+                                    {{ icon("location") }}
+                                {%- elif i.type == "phone" -%}
+                                    {{ icon("phone") }}
+                                {%- elif i.type == "work" -%}
+                                    {{ icon("briefcase") }}
+                                {%- elif i.type == "education" -%}
+                                    {{ icon("user-graduate") }}
+                                {%- elif i.type == "business_hours" -%}
+                                    {{ icon("clock") }}
+                                {%- elif i.type == "profile_email" -%}
+                                    {{ icon("email") }}
+                                {%- else -%}
+                                    {{ icon("circle-info") }}
+                                {%- endif -%}
+                                <span>{{ i.text }}</span>
+                            </div>
+                        </a>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </section>
+        <section id="timeline_feed">
+            {% if info.is_private %}
+                <span class="card centered">{{ icon("lock") }} The content is private.</span>
+            {% elif posts %}
+                {% for i in posts %}
+                    {{ Post(i, expanded=request.cookies.get("expand") == "on") }}
+                {% endfor %}
+                {{ navigation_buttons() }}
+            {% else %}
+                <span class="card centered">No posts.</span>
+            {% endif %}
+        </section>
+    </div>
+{% endblock content %}

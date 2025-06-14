@@ -1,0 +1,27 @@
+{% extends "base.html.jinja" %}
+{% from "macros.html.jinja" import icon, Post, search_bar %}
+{% from "context_macros.html.jinja" import navigation_buttons with context %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='search.css') }}" />
+{% endblock head %}
+
+{% block content %}
+    {{ search_bar() }}
+    {% for i in results %}
+        {% if type(i) == "User" %}
+            <a class="no_underline" href="{{ url_for('profile.profile', username=i.username) }}">
+                <div class="search_card card">
+                    <img class="search_card_picture" src="{{ i.picture_url | proxy }}" alt="{{ i.name }}'s profile picture" />
+                    <div class="search_body">
+                        <span>{{ i["name"] }}</span>{{ icon("circle-check", class="profile_checkmark") if i.verified }}
+                        <p class="search_card_description">{{ i.description or "" }}</p>
+                    </div>
+                </div>
+            </a>
+        {% elif type(i) == "Post" %}
+            {{ Post(i) }}
+        {% endif %}
+    {% endfor %}
+    {{ navigation_buttons() }}
+{% endblock content %}

@@ -1,0 +1,31 @@
+#settings {
+    display: flex;
+    flex-direction: column;
+    max-width: 100%;
+    gap: 4px;
+    background-color: var(--background2);
+    padding: 8px;
+    border-radius: 8px;
+}
+
+.settings_row {
+    display: flex;
+    width: 100%;
+    cursor: pointer;
+    user-select: none;
+    align-items: center;
+}
+
+.settings_row > select,
+.settings_row > input {
+    margin-left: auto;
+}
+
+.settings_footer {
+    display: flex;
+    gap: 8px;
+}
+
+#settings > button {
+    width: fit-content;
+}

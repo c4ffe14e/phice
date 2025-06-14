@@ -1,0 +1,27 @@
+#album {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-gap: 4px;
+    align-items: center;
+}
+
+.album_item {
+    display: flex;
+    position: relative;
+    height: 100%;
+    align-items: center;
+    background-color: black;
+}
+
+.album_item * {
+    width: 100%;
+}
+
+.album_item > a > .icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 25%;
+    height: 25%;
+}

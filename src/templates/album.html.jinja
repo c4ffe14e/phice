@@ -1,0 +1,26 @@
+{% extends "base.html.jinja" %}
+{% from "macros.html.jinja" import icon %}
+{% from "context_macros.html.jinja" import navigation_buttons with context %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='album.css') }}" />
+{% endblock head %}
+
+{% block content %}
+    <div id="album">
+        {% for i in items %}
+            <div class="album_item">
+                {% if type(i) == "Photo" %}
+                    <a href="{{ url_for('posts.photo', fbid=i.id) }}">
+                        <img src="{{ i.url | proxy }}" />
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('posts.videos', author=i.owner_id, token=i.id) }}">
+                        <img src="{{ i.thumbnail_url | proxy }}" />{{ icon("play") }}
+                    </a>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+    {{ navigation_buttons() }}
+{% endblock content %}

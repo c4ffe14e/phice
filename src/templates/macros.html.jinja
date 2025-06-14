@@ -1,0 +1,273 @@
+{% macro icon(name, class="") -%}
+    <svg class="icon {{ class }}">
+        <use href="{{ url_for('static', filename='assets/icons.svg') }}#{{ name }}"></use>
+    </svg>
+{%- endmacro %}
+
+{% macro expandable_p(text, expanded=false, class="") -%}
+    <div class="expandable_p {{ class }}">
+        {%- if not expanded and text | length > 250 -%}
+            <span>{{ text[:250] | urlize(target="_blank") }}</span><details class="read_more">
+                <summary>...Read more</summary>
+            </details><span class="expanded_text">{{ text[250:] | urlize(target="_blank") }}</span>
+        {%- else -%}
+            <span class="expanded_text">{{ text | urlize(target="_blank") }}</span>
+        {%- endif -%}
+    </div>
+{%- endmacro %}
+
+{% macro Comment(comment, class="") %}
+    <article class="comment card {{ class }}">
+        <a {% if comment.author.username %}href="{{ url_for('profile.profile', username=comment.author.username) }}"{% endif %}>
+            <img
+                class="comment_profile_picture"
+                src="{{ comment.author.picture_url | proxy }}"
+                alt="{{ comment.author.name }}'s profile picture"
+            />
+        </a>
+        <div class="comment_body">
+            <div class="comment_header">
+                <a
+                    {% if comment.author.username %}
+                        href="{{ url_for('profile.profile', username=comment.author.username) }}"
+                    {% endif %}
+                ><span class="profile_name">{{ comment.author.name }}</span></a>{{
+                    icon("circle-check", class="profile_checkmark") if comment.author.verified
+                }}
+            </div>
+            {% if comment.text %}
+                {{ expandable_p(comment.text) }}
+            {% endif %}
+            {% if comment.attachment %}
+                {% set t = type(comment.attachment) %}
+                {% if t == "Photo" %}
+                    <img
+                        class="comment_attachment"
+                        src="{{ comment.attachment.url | proxy }}"
+                        alt="{{  comment.attachment.alt_text  }}"
+                    />
+                {% elif t == "Video" %}
+                    <video
+                        class="comment_attachment"
+                        controls
+                        src="{{ comment.attachment.url | proxy }}"
+                        preload="metadata"
+                    ></video>
+                {% elif t == "AnimatedImage" %}
+                    <video
+                        class="comment_attachment"
+                        loop
+                        autoplay
+                        muted
+                        src="{{ comment.attachment.url | proxy }}"
+                    ></video>
+                {% else %}
+                    <div class="comment_text_card centered">{{ icon("triangle-exclamation") }} Unsupported attachment.</div>
+                {% endif %}
+            {% endif %}
+            <div class="comment_footer">
+                <span class="comment_time" title="{{ comment.time | format_time_utc }}">{{ comment.time | format_time }}</span>
+                <div class="comment_feedback">
+                    <div class="reactions">
+                        {{ icon("thumbs-up") }}<span class="feedback_text">{{ comment.reactions["total"] | format_number }}</span>
+                    </div>
+                    <div class="reactions_popup">
+                        {{ icon("thumbs-up") }}<span class="feedback_text">{{ comment.reactions["like"] | format_number }}</span>
+                        {{ icon("heart") }}<span class="feedback_text">{{ comment.reactions["love"] | format_number }}</span>
+                        {{ icon("hand-holding-heart") }}<span class="feedback_text">{{
+                            comment.reactions["care"] | format_number
+                        }}</span>
+                        {{ icon("face-grin-squint") }}<span class="feedback_text">{{
+                            comment.reactions["haha"] | format_number
+                        }}</span>
+                        {{ icon("face-surprise") }}<span class="feedback_text">{{ comment.reactions["wow"] | format_number }}</span>
+                        {{ icon("face-sad-tear") }}<span class="feedback_text">{{ comment.reactions["sad"] | format_number }}</span>
+                        {{ icon("face-angry") }}<span class="feedback_text">{{ comment.reactions["angry"] | format_number }}</span>
+                    </div>
+                    <a
+                        class="no_underline"
+                        {% if not comment.is_reply %}
+                            href="{{
+                                url_for(request.endpoint,
+                                    author=request.view_args.author,
+                                    token=request.view_args.token,
+                                    comment_id=comment.id,
+                                    sort=request.args.get('sort')
+                                )
+                            }}"
+                        {% endif %}
+                    >{{ icon("comment") }}<span class="feedback_text">{{ comment.replies_count | format_number }}</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </article>
+{% endmacro %}
+
+{% macro Post(post, expanded=false, class="") %}
+    <article class="post card {{ class }}">
+        <div class="post_header">
+            <a
+                {% if post.author.username %}
+                    href="{{ url_for('profile.profile', username=post.author.username) }}"
+                {% endif %}
+            >
+                <img
+                    class="post_profile_picture"
+                    src="{{ post.author.picture_url | proxy }}"
+                    alt="{{ post.author.name }}'s profile picture"
+                />
+            </a>
+            <div>
+                <div>
+                    <a href="{{ url_for('profile.profile', username=(post.author.username or post.author.id)) }}">
+                        <span class="profile_name">{{ post.author.name }}</span>{{
+                            icon("circle-check", class="profile_checkmark") if post.author.verified
+                        }}</a>
+                    {%- if post.roles %}<span class="user_roles">{{ " • ".join(post.roles) }}</span>{% endif %}
+                    {%- if post.from_group -%}
+                        {{ icon("chevron-right", class="group_arrow") }}<a
+                            href="{{
+                                url_for('groups.groups', token=post.from_group.username)
+                            }}"
+                        ><span class="profile_name">{{ post.from_group.name }}</span>
+                        </a>
+                    {%- endif -%}
+                </div>
+                {% if post.title %}<span class="post_title">{{ post.title }}</span>{% endif %}
+                <span class="post_time" title="{{ post.time | format_time_utc }}">{{ post.time | format_time }}</span>
+            </div>
+        </div>
+        {% if post.text -%}
+            {{ expandable_p(post.text, expanded=expanded, class="post_text") }}
+        {% endif %}
+        {% if post.shared_post %}
+            {{ Post(post.shared_post, class="post_shared") }}
+        {% elif post.attachments %}
+            <div class="post_attachments">
+                {% if post.files_left > 0 %}
+                    <a class="no_underline" href="{{ url_for('albums.albums', set='pcb.' + post.post_id) }}">
+                        <span class="attachments_left post_attachments_item">+{{ post.files_left }}</span>
+                    </a>
+                {% endif %}
+                {% for i in post.attachments | reverse %}
+                    {% set t = type(i) %}
+                    {% if t == "Photo" %}
+                        <a href="{{ url_for('posts.photo', fbid=i.id) }}">
+                            <div class="post_attachments_item wrapped_image"><img
+                                    src="{{ i.url | proxy }}"
+                                    alt="{{ i.alt_text}}"
+                                /></div>
+                        </a>
+                    {% elif t == "Video" %}
+                        <div class="post_attachments_item wrapped_video"><video
+                                controls
+                                src="{{ i.url | proxy }}"
+                                preload="metadata"
+                            ></video></div>
+                    {% elif t == "AnimatedImage" %}
+                        <div class="post_attachments_item wrapped_video"><video
+                                loop
+                                autoplay
+                                muted
+                                src="{{ i.url | proxy }}"
+                            ></video></div>
+                    {% elif t == "Poll" %}
+                        <div class="post_poll post_attachments_item">
+                            <h3 class="post_poll_text">{{ i.text }}</h3>
+                            {% for j in i.options %}
+                                <div class="post_poll_item">
+                                    <div class="post_poll_item_bg" style="--persent: {{ j[2] }}%"></div>
+                                    <span class="post_poll_item_text">{{ j[0] }}</span><span
+                                        class="post_poll_item_count"
+                                    >{{ j[1] | format_number }} {{ j[2] }}%</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% elif t == "Unavailable" %}
+                        <div class="post_text_card centered post_attachments_item">
+                            <span>{{ icon("lock") }}This content isn't available right now</span>
+                        </div>
+                    {% elif t == "Event" %}
+                        <div class="post_text_card post_attachments_item">
+                            <h2>{{ i.name }}</h2>
+                            <p>{{ i.time }}</p>
+                            <p>{{ i.description }}</p>
+                        </div>
+                    {% else %}
+                        <div class="post_text_card centered post_attachments_item">
+                            <span>{{ icon("triangle-exclamation") }} Unsupported attachment.</span>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% if post.feedback_id is not none %}
+            <div class="post_feedback">
+                <div class="reactions">
+                    {{ icon("thumbs-up") }}<span class="feedback_text">{{ post.reactions["total"] | format_number }}</span>
+                </div>
+                <div class="reactions_popup">
+                    {{ icon("thumbs-up") }}<span class="feedback_text">{{ post.reactions["like"] | format_number }}</span>
+                    {{ icon("heart") }}<span class="feedback_text">{{ post.reactions["love"] | format_number }}</span>
+                    {{ icon("hand-holding-heart") }}<span class="feedback_text">{{ post.reactions["care"] | format_number }}</span>
+                    {{ icon("face-grin-squint") }}<span class="feedback_text">{{ post.reactions["haha"] | format_number }}</span>
+                    {{ icon("face-surprise") }}<span class="feedback_text">{{ post.reactions["wow"] | format_number }}</span>
+                    {{ icon("face-sad-tear") }}<span class="feedback_text">{{ post.reactions["sad"] | format_number }}</span>
+                    {{ icon("face-angry") }}<span class="feedback_text">{{ post.reactions["angry"] | format_number }}</span>
+                </div>
+                <a
+                    class="no_underline"
+                    {% if post.from_group %}
+                        href="{{
+                            url_for(
+                                'posts.groups_posts',
+                                author=post.from_group.username,
+                                token=post.post_id
+                            )
+                        }}"
+                    {% else %}
+                        href="{{
+                            url_for(
+                                'posts.videos' if post.is_video else 'posts.posts',
+                                author=(post.author.username or post.author.id),
+                                token=post.post_id
+                            )
+                        }}"
+                    {% endif %}
+                >
+                    {{ icon("comment") }}<span class="feedback_text">{{ post.comments_count | format_number }}</span>
+                </a>
+                {{ icon("share") }}<span class="feedback_text">{{ post.share_count | format_number }}</span>
+                {% if post.view_count is not none %}
+                    {{ icon("play") }}<span class="feedback_text">{{ post.view_count | format_number }}</span>
+                {% endif %}
+                {% if post.voters_count is not none %}
+                    {{ icon("poll") }}<span class="feedback_text">{{ post.voters_count | format_number }}</span>
+                {% endif %}
+            </div>
+        {% endif %}
+    </article>
+{% endmacro %}
+
+{% macro search_bar() %}
+    {% set q = request.args.get('q') %}
+    <form class="search_bar" action="{{ url_for('search.search') }}">
+        <input
+            type="text"
+            name="q"
+            placeholder="Search"
+            autocomplete="off"
+            required
+            value="{{ q if q }}"
+        />
+        <select name="t">
+            {% set t = request.args.get("t") %}
+            <option value="pages">Pages</option>
+            <option value="posts" {{ "selected" if t == "posts" }}>Posts</option>
+            <option value="recent_posts" {{ "selected" if t == "recent_posts" }}>Recent posts</option>
+            <option value="people" {{ "selected" if t == "people" }}>People</option>
+        </select>
+        <button type="submit" class="icon_button">{{ icon("search") }}</button>
+    </form>
+{% endmacro %}

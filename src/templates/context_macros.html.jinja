@@ -1,0 +1,18 @@
+{% from "macros.html.jinja" import icon %}
+
+{% macro navigation_buttons() -%}
+    <div id="navigation_buttons">
+        {% if request.args.get("cursor") %}
+            <a
+                class="a_button"
+                href="{{ url_for(request.endpoint, **dict(request.view_args | items | list + request.args | items | rejectattr("0", "eq", "cursor") | list)) }}"
+            >{{ icon("angles-left") }}Start</a>
+        {% endif %}
+        {% if has_next -%}
+            <a
+                class="a_button"
+                href="{{ url_for(request.endpoint, **dict(request.view_args | items | list + request.args | items | list, cursor=cursor)) }}"
+            >Next{{ icon("chevron-right") }}</a>
+        {%- endif %}
+    </div>
+{%- endmacro %}

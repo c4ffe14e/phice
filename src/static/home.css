@@ -1,0 +1,15 @@
+.home_logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.home_logo > span {
+    font-size: 4rem;
+    font-weight: 450;
+}
+
+.home_logo > svg {
+    width: 5rem;
+    height: 5rem;
+}

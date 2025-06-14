@@ -1,0 +1,31 @@
+{% extends "base.html.jinja" %}
+{% from "macros.html.jinja" import icon, Comment, Post %}
+{% from "context_macros.html.jinja" import navigation_buttons with context %}
+
+{% block content %}
+    {{ Post(post, expanded=true) }}
+    {%- if post.feedback_id is not none %}
+        <section class="comment_section">
+            <form id="comment_sort_form">
+                {% if request.args.get("comment_id") %}
+                    <input type="hidden" name="comment_id" value="{{ request.args.comment_id }}" />
+                {% endif %}
+                <select name="sort">
+                    {% set sort = request.args.get("sort") or request.cookies.get("comments_sort") %}
+                    <option value="filtered">Most relevant</option>
+                    <option value="newest" {{ "selected" if sort == "newest" }}>Newest</option>
+                    <option value="all" {{ "selected" if sort == "all" }}>All</option>
+                </select>
+                <button type="submit" class="icon_button">{{ icon("chevron-right") }}</button>
+            </form>
+            {% if comments %}
+                {% for i in comments %}
+                    {{ Comment(i, "reply" if i.is_reply else "") }}
+                {% endfor %}
+            {% else %}
+                <span class="card centered">No comments.</span>
+            {% endif %}
+            {{ navigation_buttons() }}
+        </section>
+    {% endif %}
+{% endblock content %}

@@ -1,0 +1,47 @@
+{% extends "base.html.jinja" %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='settings.css') }}" />
+{% endblock head %}
+
+{% macro get(option, value, attr) -%}
+    {{ attr if request.cookies.get(option, config["DEFAULT_SETTINGS"].get(option)) == value }}
+{%- endmacro %}
+
+{% block content %}
+    <form id="settings" method="post">
+        <h1>Settings:</h1>
+        <input type="hidden" name="referrer" value="{{ request.headers.get('referer', '') }}" />
+        <label class="settings_row">
+            Theme
+            <select name="theme">
+                <option value="default">Default</option>
+                <option value="light" {{ get("theme", "light", "selected") }}>Light</option>
+                <option value="black" {{ get("theme", "black", "selected") }}>Black</option>
+                <option value="catppuccin_mocha" {{ get("theme", "catppuccin_mocha", "selected") }}>Catppuccin mocha</option>
+                <option value="catppuccin_latte" {{ get("theme", "catppuccin_latte", "selected") }}>Catppuccin latte</option>
+            </select>
+        </label>
+        <label class="settings_row">
+            Proxy media
+            <input type="checkbox" name="proxy" {{ get("proxy", "on", "checked") }} />
+        </label>
+        <label class="settings_row">
+            Default comments sort
+            <select name="comments_sort">
+                <option value="filtered" {{ get("comments_sort", "filtered", "selected") }}>Most relevant</option>
+                <option value="newest" {{ get("comments_sort", "newest", "selected") }}>Newest</option>
+                <option value="all" {{ get("comments_sort", "all", "selected") }}>All</option>
+            </select>
+        </label>
+        <label class="settings_row">
+            Expand posts
+            <input type="checkbox" name="expand" {{ get("expand", "on", "checked") }} />
+        </label>
+        <hr />
+        <div class="settings_footer">
+            <button type="submit" name="save" value="on">Save</button>
+            <button type="submit" name="reset" value="on">Reset</button>
+        </div>
+    </form>
+{% endblock content %}

@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
+    <channel>
+        <title>{{ info.name }} | Phice</title>
+        <link>{{ url_for("groups.groups", token=info.token, _external=true) if info.is_group else url_for("profile.profile", username=info.token, _external=true) }}</link>
+        <description>RSS feed for {{ info.name }}</description>
+        {% if info.picture_url -%}
+            <image>
+                <url>{{ info.picture_url | proxy }}</url>
+                <title></title>
+                <link>{{
+                    url_for(
+                        "groups.groups",
+                        token=info.token,
+                        _external=true,
+                    ) if info.is_group else url_for(
+                        "profile.profile",
+                        username=info.token,
+                        _external=true,
+                    )
+                }}</link>
+            </image>
+        {%- endif %}
+        {%- for i in posts %}
+        <item>
+            <title>{{ i.text[:60] }} | {{ i.author.name }}</title>
+            <link>{{
+                url_for(
+                    "posts.groups_posts",
+                    author=i.from_group.username,
+                    token=i.post_id,
+                    _external=true,
+                ) if i.from_group else url_for(
+                    "posts.videos" if i.is_video else "posts.posts",
+                    author=i.author.username,
+                    token=i.post_id,
+                    _external=true,
+                )
+            }}</link>
+            <description>
+                <![CDATA[{{ i.text }}{%- if i.attachments -%}
+                    <br />
+                    {%- for i in i.attachments | reverse -%}
+                        <br />
+                        {%- set t = type(i) -%}
+                        {%- if t == "Photo" -%}
+                            <img src="{{ i.url | proxy }}" alt="{{ i.alt_text }}" />
+                        {%- elif t == "Video" -%}
+                            <video controls src="{{ i.url | proxy }}"><a href="{{ i.url | proxy }}">Video</a></video>
+                        {%- elif t == "AnimatedImage" -%}
+                            <video loop autoplay muted src="{{ i.url | proxy }}"><a href="{{ i.url | proxy }}">Video</a></video>
+                        {%- elif t == "Poll" -%}
+                            {%- for j in i.options -%}
+                                {{ j[0] ~ " " ~ j[1] ~ " " ~ j[2] ~ "%" }}<br />
+                            {%- endfor -%}
+                        {%- elif t == "Unavailable" -%}
+                            This content isn't available right now
+                        {%- elif t == "Event" -%}
+                            {{ i.name }}<br />{{ i.time }}<br />{{ i.description }}
+                        {%- endif -%}
+                    {%- endfor -%}
+                {%- endif -%}
+                <br />
+                <span>Reactions: {{ i.reactions["total"] | format_number }} | Comments: {{ i.comments_count | format_number }} | Shares: {{ i.share_count | format_number }}</span>]]>
+            </description>
+            <author>{{ i.author.name }}</author>
+            <guid>{{ i.post_id }}</guid>
+            <pubDate>{{ i.time | format_time_rfc822 }}</pubDate>
+        </item>
+        {%- endfor %}
+    </channel>
+</rss>

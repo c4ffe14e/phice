@@ -1,0 +1,50 @@
+{% from "macros.html.jinja" import icon %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        {% set theme = request.cookies.get("theme") %}
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>{{ title + " | " if title }}Phice</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+        {% if theme == "light" %}
+            <link rel="stylesheet" href="{{ url_for('static', filename='themes/light.css') }}" />
+        {% elif theme == "black" %}
+            <link rel="stylesheet" href="{{ url_for('static', filename='themes/black.css') }}" />
+        {% elif theme == "catppuccin_mocha" %}
+            <link rel="stylesheet" href="{{ url_for('static', filename='themes/catppuccin_mocha.css') }}" />
+        {% elif theme == "catppuccin_latte" %}
+            <link rel="stylesheet" href="{{ url_for('static', filename='themes/catppuccin_latte.css') }}" />
+        {% endif %}
+        <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}" />
+        <meta property="og:title" content="{{ title }}" />
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content="{{ url_for('static', filename='favicon.png') }}" />
+        <meta property="og:url" content="{{ request.base_url }}" />
+        <meta property="og:description" content="A lightweight privacy-friendly alternative front-end for Facebook" />
+        <meta property="og:site_name" content="Phice" />
+        {% if config["ENABLE_RSS"] and request.endpoint in ("profile.profile", "groups.groups") %}
+            <link rel="alternate" type="application/rss+xml" href="?rss=1" title="RSS Feed">
+        {% endif %}
+        {% block head %}{% endblock head %}
+    </head>
+    <body>
+        <header>
+            <a class="no_underline" href="{{ url_for('home.home') }}">
+                <svg id="header_logo" class="logo"><use href="{{ url_for('static', filename='logo.svg') }}#logo"></use></svg>
+                <span id="name">Phice</span>
+            </a>
+            <div id="header_buttons">
+                <a href="{{ url_for('home.home') }}">{{ icon("search") }}</a>
+                {% if config["ENABLE_RSS"] and request.endpoint in ("profile.profile", "groups.groups") %}
+                    <a href="?rss=1">{{ icon("rss") }}</a>
+                {% endif %}
+                <a href="{{ 'https://facebook.com' + request.full_path }}">{{ icon("facebook") }}</a>
+                <a href="{{ url_for('settings.settings') }}">{{ icon("gear") }}</a>
+            </div>
+        </header>
+        <main>
+            {% block content %}{% endblock content %}
+        </main>
+    </body>
+</html>

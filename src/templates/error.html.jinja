@@ -1,0 +1,14 @@
+{% extends "base.html.jinja" %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='error.css') }}" />
+{% endblock head %}
+
+{% block content %}
+    <div id="whole_screen">
+        <div id="error_message">
+            <h1>Error {{ e.code }}</h1>
+            <p>{{ e.description }}</p>
+        </div>
+    </div>
+{% endblock content %}

@@ -1,0 +1,20 @@
+.search_card {
+    display: flex;
+    gap: 8px;
+}
+
+.search_card_picture {
+    width: 64px;
+    height: 64px;
+    border-radius: 100%;
+}
+
+.search_card_description {
+    margin-top: 4px;
+    font-size: 0.95rem;
+    white-space: pre-wrap;
+}
+
+.search_body {
+    width: 100%;
+}
