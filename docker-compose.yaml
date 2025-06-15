@@ -1,6 +1,6 @@
 services:
   phice:
-    image: phice
+    image: c4ffe14e/phice:latest
     container_name: phice
     build: .
     ports:

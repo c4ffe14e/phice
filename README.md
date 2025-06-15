@@ -17,9 +17,11 @@ Inspired by [Nitter](https://github.com/zedeus/nitter), [Invidious](https://gith
 
 # Installation
 ## Docker
-Build your image with
+Docker image avaliable at: https://hub.docker.com/r/c4ffe14e/phice
+
+or build your image with
 ```sh
-docker buildx build -t phice .
+docker buildx build -t phice:latest .
 ```
 
 Create a config file
@@ -29,7 +31,7 @@ cp config.example.json config.json
 
 Run it with docker
 ```sh
-docker run --rm -v "./config.json:/src/phice/config.json" -p "5000:5000" -d phice
+docker run --rm -v "./config.json:/src/phice/config.json" -p "5000:5000" -d phice:latest
 ```
 
 or with compose
