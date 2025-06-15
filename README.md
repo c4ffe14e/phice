@@ -16,7 +16,29 @@ Inspired by [Nitter](https://github.com/zedeus/nitter), [Invidious](https://gith
 * RSS feeds
 
 # Installation
-## Dependencies:
+## Docker
+Build your image with
+```sh
+docker buildx build -t phice .
+```
+
+Create a config file
+```sh
+cp config.example.json config.json
+```
+
+Run it with docker
+```sh
+docker run --rm -v "./config.json:/src/phice/config.json" -p "5000:5000" -d phice
+```
+
+or with compose
+```sh
+docker-compose up -d
+```
+
+## Manual
+### Dependencies:
 * python >= 3.13
 * uv
 * a WSGI server (ex: gunicorn)
