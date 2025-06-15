@@ -31,7 +31,7 @@ cp config.example.json config.json
 
 Run it with docker
 ```sh
-docker run --rm -v "./config.json:/src/phice/config.json" -p "5000:5000" -d phice:latest
+docker run --rm -v "./config.json:/src/phice/config.json:ro" -p "5000:5000" -d phice:latest
 ```
 
 or with compose
