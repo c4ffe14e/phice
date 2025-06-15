@@ -1,0 +1,10 @@
+services:
+  phice:
+    image: phice
+    container_name: phice
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - "./config.json:/src/phice/config.json:ro"
+    restart: unless-stopped
