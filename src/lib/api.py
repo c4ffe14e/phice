@@ -54,11 +54,11 @@ class Api:
             },
         )
         if response.status_code != 200:
-            raise ResponseError(f"Facebook return {response.status_code}")
+            raise ResponseError(f"Facebook returned {response.status_code}")
         result: list[JSON] = [orjson.loads(i) for i in response.text.splitlines()]
-        if (errors := result[0].get("errors")) and not (
-            fuck_facebook and "A server error field_exception occured." in errors[0]["message"]
-        ):
+        errors: list[JSON] | None = result[0].get("errors")
+
+        if errors and not (fuck_facebook and "field_exception" in errors[0]["message"]):
             raise ResponseError(f"{inspect.stack()[1].function}: " + ", ".join(i["message"] for i in errors))
 
         return result
