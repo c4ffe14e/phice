@@ -39,7 +39,6 @@ class Api:
             headers=self.HEADERS,
             base_url="https://www.facebook.com",
             timeout=15,
-            transport=httpx.HTTPTransport(retries=5),
         )
 
     def __fetch(self, doc_id: int, variables: JSON, *, fuck_facebook: bool = False) -> list[JSON]:
