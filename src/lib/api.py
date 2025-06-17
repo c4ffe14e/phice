@@ -1,4 +1,5 @@
 import inspect
+from pathlib import Path
 from typing import Any
 
 import httpx
@@ -8,24 +9,13 @@ from .exceptions import ResponseError
 
 type JSON = dict[str, Any]
 
-EXTRA_VARIABLES: JSON = {
-    "__relay_internal__pv__ProfileCometHeaderPrimaryActionBar_passesCometProfileDirectoryGKrelayprovider": False,
-    "__relay_internal__pv__GHLShouldChangeAdIdFieldNamerelayprovider": False,
-    "__relay_internal__pv__GHLShouldChangeSponsoredDataFieldNamerelayprovider": False,
-    "__relay_internal__pv__IsWorkUserrelayprovider": False,
-    "__relay_internal__pv__FBReels_deprecate_short_form_video_context_gkrelayprovider": False,
-    "__relay_internal__pv__CometImmersivePhotoCanUserDisable3DMotionrelayprovider": False,
-    "__relay_internal__pv__WorkCometIsEmployeeGKProviderrelayprovider": False,
-    "__relay_internal__pv__IsMergQAPollsrelayprovider": False,
-    "__relay_internal__pv__FBReelsMediaFooter_comet_enable_reels_ads_gkrelayprovider": False,
-    "__relay_internal__pv__CometUFIReactionsEnableShortNamerelayprovider": False,
-    "__relay_internal__pv__CometUFIShareActionMigrationrelayprovider": True,
-    "__relay_internal__pv__CometUFI_dedicated_comment_routable_dialog_gkrelayprovider": False,
-    "__relay_internal__pv__StoriesArmadilloReplyEnabledrelayprovider": False,
-    "__relay_internal__pv__FBReelsIFUTileContent_reelsIFUPlayOnHoverrelayprovider": False,
-    "__relay_internal__pv__GroupsCometGroupChatLazyLoadLastMessageSnippetrelayprovider": False,
-    "__relay_internal__pv__GroupsCometLazyLoadFeaturedSectionrelayprovider": False,
-}
+data_path: Path = Path(__file__).resolve().parent / "data"
+
+with (data_path / "doc_ids.json").open("r") as f:
+    DOC_IDS: JSON = orjson.loads(f.read())
+
+with (data_path / "extra_variables.json").open("r") as f:
+    EXTRA_VARIABLES: JSON = orjson.loads(f.read())
 
 
 class Api:
@@ -52,7 +42,7 @@ class Api:
             transport=httpx.HTTPTransport(retries=5),
         )
 
-    def __fetch(self, doc_id: str, variables: JSON, *, fuck_facebook: bool = False) -> list[JSON]:
+    def __fetch(self, doc_id: int, variables: JSON, *, fuck_facebook: bool = False) -> list[JSON]:
         response: httpx.Response = self.__client.post(
             "/api/graphql/",
             data={
@@ -99,7 +89,7 @@ class Api:
 
     def ProfileCometHeaderQuery(self, user_id: str) -> list[JSON]:
         return self.__fetch(
-            "24637479539185522",
+            DOC_IDS["ProfileCometHeaderQuery"],
             {
                 "scale": 1,
                 "selectedID": user_id,
@@ -111,7 +101,7 @@ class Api:
 
     def ProfilePlusCometLoggedOutRootQuery(self, user_id: str) -> list[JSON]:
         return self.__fetch(
-            "29764188139896558",
+            DOC_IDS["ProfilePlusCometLoggedOutRootQuery"],
             {
                 "scale": 1,
                 "userID": user_id,
@@ -120,7 +110,7 @@ class Api:
 
     def ProfileCometTimelineFeedQuery(self, user_id: str) -> list[JSON]:
         return self.__fetch(
-            "24130362143235169",
+            DOC_IDS["ProfileCometTimelineFeedQuery"],
             {
                 "count": 1,
                 "feedbackSource": 0,
@@ -136,7 +126,7 @@ class Api:
 
     def ProfileCometTimelineFeedRefetchQuery(self, user_id: str, cursor: str | None) -> list[JSON]:
         return self.__fetch(
-            "29857242777255325",
+            DOC_IDS["ProfileCometTimelineFeedRefetchQuery"],
             {
                 "afterTime": None,
                 "beforeTime": None,
@@ -162,7 +152,7 @@ class Api:
 
     def CometSinglePostDialogContentQuery(self, story_id: str, focus_id: str | None = None) -> list[JSON]:
         return self.__fetch(
-            "30329081383349461",
+            DOC_IDS["CometSinglePostDialogContentQuery"],
             {
                 "feedbackSource": 2,
                 "feedLocation": "PERMALINK",
@@ -177,7 +167,7 @@ class Api:
 
     def CommentsListComponentsPaginationQuery(self, feedback_id: str, cursor: str | None) -> list[JSON]:
         return self.__fetch(
-            "24152478804356082",
+            DOC_IDS["CommentsListComponentsPaginationQuery"],
             {
                 "commentsAfterCount": -1,
                 "commentsAfterCursor": cursor,
@@ -194,7 +184,7 @@ class Api:
 
     def CommentListComponentsRootQuery(self, feedback_id: str, sort: str, focus_id: str | None = None) -> list[JSON]:
         return self.__fetch(
-            "9884198138336503",
+            DOC_IDS["CommentListComponentsRootQuery"],
             {
                 "commentsIntentToken": sort,
                 "feedLocation": "PERMALINK",
@@ -208,7 +198,7 @@ class Api:
 
     def Depth1CommentsListPaginationQuery(self, feedback_id: str, expansion_token: str, cursor: str | None) -> list[JSON]:
         return self.__fetch(
-            "24355745037360129",
+            DOC_IDS["Depth1CommentsListPaginationQuery"],
             {
                 "clientKey": None,
                 "expansionToken": expansion_token,
@@ -226,7 +216,7 @@ class Api:
 
     def FBReelsRootWithEntrypointQuery(self, reel_id: str) -> list[JSON]:
         return self.__fetch(
-            "30094271533520445",
+            DOC_IDS["FBReelsRootWithEntrypointQuery"],
             {
                 "count": 0,
                 "group_id_list": [],
@@ -247,7 +237,7 @@ class Api:
 
     def CometGroupRootQuery(self, group_id: str) -> list[JSON]:
         return self.__fetch(
-            "24726713260250827",
+            DOC_IDS["CometGroupRootQuery"],
             {
                 "groupID": group_id,
                 "inviteShortLinkKey": None,
@@ -258,7 +248,7 @@ class Api:
 
     def GroupsCometDiscussionLayoutRootQuery(self, group_id: str) -> list[JSON]:
         return self.__fetch(
-            "29803864032592554",
+            DOC_IDS["GroupsCometDiscussionLayoutRootQuery"],
             {
                 "groupID": group_id,
                 "scale": 1,
@@ -267,7 +257,7 @@ class Api:
 
     def CometGroupDiscussionRootSuccessQuery(self, group_id: str) -> list[JSON]:
         return self.__fetch(
-            "23997107266592174",
+            DOC_IDS["CometGroupDiscussionRootSuccessQuery"],
             {
                 "autoOpenChat": False,
                 "creative_provider_id": None,
@@ -295,7 +285,7 @@ class Api:
 
     def GroupsCometFeedRegularStoriesPaginationQuery(self, group_id: str, cursor: str | None) -> list[JSON]:
         return self.__fetch(
-            "9755367644572581",
+            DOC_IDS["GroupsCometFeedRegularStoriesPaginationQuery"],
             {
                 "count": 3,
                 "cursor": cursor,
@@ -315,7 +305,7 @@ class Api:
 
     def CometPhotoAlbumQuery(self, token: str) -> list[JSON]:
         return self.__fetch(
-            "29989561257355685",
+            DOC_IDS["CometPhotoAlbumQuery"],
             {
                 "feedbackSource": 65,
                 "feedLocation": "PERMALINK",
@@ -330,7 +320,7 @@ class Api:
 
     def CometAlbumPhotoCollagePaginationQuery(self, album_id: str, cursor: str | None) -> list[JSON]:
         return self.__fetch(
-            "9782410388506700",
+            DOC_IDS["CometAlbumPhotoCollagePaginationQuery"],
             {
                 "count": 14,
                 "cursor": cursor,
@@ -342,7 +332,7 @@ class Api:
 
     def CometPhotoRootContentQuery(self, node_id: str) -> list[JSON]:
         return self.__fetch(
-            "23916701474613206",
+            DOC_IDS["CometPhotoRootContentQuery"],
             {
                 "feedbackSource": 65,
                 "feedLocation": "COMET_MEDIA_VIEWER",
@@ -365,7 +355,7 @@ class Api:
         filters: list[str] | None = None,
     ) -> list[JSON]:
         return self.__fetch(
-            "23897855153159069",
+            DOC_IDS["SearchCometResultsPaginatedResultsQuery"],
             {
                 "allow_streaming": False,
                 "args": {
