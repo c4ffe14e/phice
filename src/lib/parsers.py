@@ -418,3 +418,30 @@ def parse_post(node: JSON, *, shared: bool = False) -> Post:
     post.text = "\n".join(text)
 
     return post
+
+
+def parse_search(edge: JSON) -> User | Post | None:
+    role: str = edge["node"]["role"]
+
+    if role in ("ENTITY_PAGES", "ENTITY_USER"):
+        profile: JSON = edge["rendering_strategy"]["view_model"]["profile"]
+
+        user: User = User(
+            id=profile["id"],
+            username=urlbasename(profile["url"]) if profile["url"] else profile["id"],
+            name=profile["name"],
+            picture_url=profile["profile_picture"]["uri"],
+            verified=profile["is_verified"],
+        )
+
+        if description := edge["rendering_strategy"]["view_model"]["description_snippets_text_with_entities"]:
+            user.description = description[0]["text"]
+
+        return user
+
+    if role == "TOP_PUBLIC_POSTS":
+        view: JSON = edge["rendering_strategy"]["view_model"]
+
+        return parse_post(click["story"] if (click := view.get("click_model")) else view["story"])
+
+    return None

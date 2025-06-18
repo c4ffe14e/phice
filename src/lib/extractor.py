@@ -3,7 +3,7 @@ from urllib.parse import parse_qs, urlparse
 
 from .api import JSON, Api
 from .exceptions import InvalidResponse, NotFound
-from .parsers import Comment, Feed, Photo, Post, User, Video, parse_comment, parse_post
+from .parsers import Comment, Feed, Photo, Post, User, Video, parse_comment, parse_post, parse_search
 from .utils import base64s, base64s_decode, urlbasename
 
 
@@ -125,9 +125,9 @@ class GetPost:
             else:
                 comments_payload = post_payload["comet_sections"]["feedback"]["story"]["story_ufi_container"]["story"][
                     "feedback_context"
-                ]["feedback_target_with_context"]["comment_list_renderer"]["feedback"]["comment_rendering_instance_for_feed_location"][
-                    "comments"
-                ]
+                ]["feedback_target_with_context"]["comment_list_renderer"]["feedback"][
+                    "comment_rendering_instance_for_feed_location"
+                ]["comments"]
 
             if self.focus:
                 main_comment: JSON = comments_payload["edges"][0]["node"]
@@ -375,32 +375,9 @@ class Search:
             )[0]["data"]["serpResponse"]["results"]
 
             for i in results_payload["edges"]:
-                match i["node"]["role"]:
-                    case "ENTITY_PAGES" | "ENTITY_USER":
-                        profile: JSON = i["rendering_strategy"]["view_model"]["profile"]
-
-                        user: User = User(
-                            id=profile["id"],
-                            username=urlbasename(profile["url"]) if profile["url"] else profile["id"],
-                            name=profile["name"],
-                            picture_url=profile["profile_picture"]["uri"],
-                            verified=profile["is_verified"],
-                        )
-
-                        if description := i["rendering_strategy"]["view_model"]["description_snippets_text_with_entities"]:
-                            user.description = description[0]["text"]
-
-                        self.results.append(user)
-                    case "TOP_PUBLIC_POSTS":
-                        view: JSON = i["rendering_strategy"]["view_model"]
-                        if click := view.get("click_model"):
-                            self.results.append(parse_post(click["story"]))
-                        else:
-                            self.results.append(parse_post(view["story"]))
-                    case "END_OF_RESULTS_INDICATOR":
-                        pass
-                    case _:
-                        raise InvalidResponse
+                item: User | Post | None = parse_search(i)
+                if item is not None:
+                    self.results.append(item)
 
             self.cursor = results_payload["page_info"]["end_cursor"]
             self.has_next = results_payload["page_info"]["has_next_page"]
