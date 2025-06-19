@@ -56,3 +56,8 @@ And start your server
 ```sh
 uv run gunicorn -b 0.0.0.0:8000 -w 4 "app:app"
 ```
+
+# Mirrors
+[Codeberg](https://codeberg.org/c4ffe14e/phice)
+
+[GitHub](https://github.com/c4ffe14e/phice)
