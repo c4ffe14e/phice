@@ -16,7 +16,7 @@ def error_handler(e: HTTPException) -> tuple[str, int]:
         tb = "".join(format_exception(og))
         tb = re.sub(
             r'File "([^"]*)"',
-            lambda m: f'File "{Path(m.group(1) or "").name}"',
+            lambda m: f'File "{Path(m.group(1)).name}"',
             tb,
         )
 
