@@ -1,6 +1,6 @@
 from flask import Blueprint, abort, render_template, request
 
-from ..lib.exceptions import NotFound
+from ..lib.exceptions import InvalidResponse, NotFound, ResponseError
 from ..lib.extractor import GetAlbum
 
 bp: Blueprint = Blueprint("albums", __name__)
@@ -12,6 +12,8 @@ def albums() -> str:
         album = GetAlbum(request.args.get("set"), request.args.get("cursor"))
     except NotFound:
         abort(404, "Album not found")
+    except (InvalidResponse, ResponseError) as e:
+        abort(500, ", ".join(e.args))
 
     return render_template(
         "album.html.jinja",

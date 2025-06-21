@@ -1,5 +1,6 @@
 from flask import Blueprint, abort, render_template, request
 
+from ..lib.exceptions import InvalidResponse, ResponseError
 from ..lib.extractor import Search
 
 bp: Blueprint = Blueprint("search", __name__)
@@ -11,11 +12,14 @@ def search() -> str:
     if not query:
         abort(400, "Bad query")
 
-    results = Search(
-        query,
-        request.args.get("t"),
-        request.args.get("cursor"),
-    )
+    try:
+        results = Search(
+            query,
+            request.args.get("t"),
+            request.args.get("cursor"),
+        )
+    except (InvalidResponse, ResponseError) as e:
+        abort(500, ", ".join(e.args))
 
     return render_template(
         "search.html.jinja",

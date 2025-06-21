@@ -13,3 +13,12 @@
 #error_message > p {
     margin: 8px 0;
 }
+
+#traceback_text {
+    font-family: monospace, sans-serif;
+    white-space: pre-wrap;
+}
+
+#traceback > summary {
+    cursor: pointer;
+}

@@ -468,3 +468,8 @@ input[type="checkbox"]:checked::after {
     align-items: center;
     gap: 16px;
 }
+
+.scrollable_text {
+    overflow-x: auto;
+    width: 100%;
+}

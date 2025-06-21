@@ -9,6 +9,14 @@
         <div id="error_message">
             <h1>Error {{ e.code }}</h1>
             <p>{{ e.description }}</p>
+            {%- if traceback -%}
+                <details id="traceback">
+                    <summary>Traceback</summary>
+                    <div class="scrollable_text">
+                        <p id="traceback_text">{{ traceback }}</p>
+                    </div>
+                </details>
+            {%- endif -%}
         </div>
     </div>
 {% endblock content %}
