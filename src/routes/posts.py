@@ -2,7 +2,7 @@ import httpx
 from flask import Blueprint, abort, redirect, render_template, request
 from werkzeug import Response
 
-from ..lib.exceptions import NotFound
+from ..lib.exceptions import InvalidResponse, NotFound, ResponseError
 from ..lib.extractor import GetPost
 from ..lib.utils import nohostname
 
@@ -40,6 +40,8 @@ def posts(author: str, token: str) -> str:
                 post.from_post(author, token)
     except NotFound:
         abort(404, "Post not found")
+    except (InvalidResponse, ResponseError) as e:
+        abort(500, ", ".join(e.args))
 
     if post.post is None:
         abort(500)

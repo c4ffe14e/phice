@@ -1,6 +1,6 @@
 from flask import Blueprint, abort, current_app, render_template, request
 
-from ..lib.exceptions import NotFound
+from ..lib.exceptions import InvalidResponse, NotFound, ResponseError
 from ..lib.extractor import GetGroup
 
 bp: Blueprint = Blueprint("groups", __name__)
@@ -12,6 +12,8 @@ def groups(token: str) -> str | tuple[str, dict[str, str]]:
         group = GetGroup(token, request.args.get("cursor"))
     except NotFound:
         abort(404, f"{token} not found")
+    except (InvalidResponse, ResponseError) as e:
+        abort(500, ", ".join(e.args))
 
     if request.args.get("rss"):
         if not current_app.config["ENABLE_RSS"]:
