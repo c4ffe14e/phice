@@ -5,7 +5,7 @@ COPY pyproject.toml .
 RUN uv sync
 RUN uv pip install gunicorn
 
-COPY src ./src
 COPY app.py .
+COPY src ./src
 
 CMD ["uv", "run", "gunicorn", "-b", "0.0.0.0:5000", "-w", "4", "app:app"]
