@@ -1,5 +1,6 @@
 import re
 from collections.abc import Callable
+from contextlib import suppress
 from datetime import UTC, datetime
 from typing import cast
 
@@ -28,8 +29,16 @@ def format_time(timestamp: str | float) -> str:
     return time.strftime("%Y/%m/%d")
 
 
-def format_time_utc(timestamp: str | float) -> str:
-    return datetime.fromtimestamp(float(timestamp), tz=UTC).strftime("%Y/%m/%d - %I:%M:%S %p UTC")
+def format_time_full(timestamp: str | float) -> str:
+    time: float = float(timestamp)
+    offset: int = 0
+
+    with suppress(ValueError):
+        offset = int(request.cookies.get("timezone", cast("str", current_app.config["DEFAULT_SETTINGS"]["timezone"])))
+
+    time += offset * 60 * 60
+
+    return datetime.fromtimestamp(time, tz=UTC).strftime(f"%Y/%m/%d - %I:%M:%S %p UTC{offset:+}")
 
 
 def format_time_rfc822(timestamp: str | float) -> str:
@@ -48,7 +57,7 @@ def proxy(s: str) -> str:
 
 FILTERS: dict[str, Callable[..., str]] = {
     "format_time": format_time,
-    "format_time_utc": format_time_utc,
+    "format_time_full": format_time_full,
     "format_time_rfc822": format_time_rfc822,
     "format_number": format_number,
     "proxy": proxy,
