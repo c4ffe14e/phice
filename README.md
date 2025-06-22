@@ -46,8 +46,6 @@ docker-compose up -d
 * a WSGI server (ex: gunicorn)
 
 ```sh
-git clone "https://codeberg.org/c4ffe14e/phice.git"
-cd phice
 uv sync
 cp config.example.json config.json
 ```
