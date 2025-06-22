@@ -1,3 +1,6 @@
+import contextlib
+from collections.abc import Generator
+
 import httpx
 from flask import Blueprint, make_response, request
 from werkzeug import Response
@@ -32,7 +35,12 @@ def cdn(path: str) -> Response:
             "x-fb-vts-requestid",
         )
     }
-    response: Response = make_response(cdn_response.iter_raw(), cdn_response.status_code, headers)
+
+    def stream() -> Generator[bytes]:
+        with contextlib.suppress(httpx.ReadTimeout):
+            yield from cdn_response.iter_raw()
+
+    response: Response = make_response(stream(), cdn_response.status_code, headers)
 
     @response.call_on_close
     def close() -> None:  # pyright: ignore[reportUnusedFunction]
