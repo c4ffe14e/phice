@@ -23,10 +23,6 @@
             </select>
         </label>
         <label class="settings_row">
-            Proxy media
-            <input type="checkbox" name="proxy" {{ get("proxy", "on", "checked") }} />
-        </label>
-        <label class="settings_row">
             Default comments sort
             <select name="comments_sort">
                 <option value="filtered" {{ get("comments_sort", "filtered", "selected") }}>Most relevant</option>
@@ -35,8 +31,22 @@
             </select>
         </label>
         <label class="settings_row">
+            Proxy media
+            <input type="checkbox" name="proxy" {{ get("proxy", "on", "checked") }} />
+        </label>
+        <label class="settings_row">
             Expand posts
             <input type="checkbox" name="expand" {{ get("expand", "on", "checked") }} />
+        </label>
+        <label class="settings_row">
+            Time zone
+            <input
+                type="number"
+                name="timezone"
+                value="{{ request.cookies.get('timezone', config['DEFAULT_SETTINGS'].get('timezone', 0)) }}"
+                min="-12"
+                max="14"
+            />
         </label>
         <hr />
         <div class="settings_footer">

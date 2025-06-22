@@ -66,7 +66,7 @@
                 {% endif %}
             {% endif %}
             <div class="comment_footer">
-                <span class="comment_time" title="{{ comment.time | format_time_utc }}">{{ comment.time | format_time }}</span>
+                <span class="comment_time" title="{{ comment.time | format_time_full }}">{{ comment.time | format_time }}</span>
                 <div class="comment_feedback">
                     <div class="reactions">
                         {{ icon("thumbs-up") }}<span class="feedback_text">{{ comment.reactions["total"] | format_number }}</span>
@@ -135,7 +135,7 @@
                     {%- endif -%}
                 </div>
                 {% if post.title %}<span class="post_title">{{ post.title }}</span>{% endif %}
-                <span class="post_time" title="{{ post.time | format_time_utc }}">{{ post.time | format_time }}</span>
+                <span class="post_time" title="{{ post.time | format_time_full }}">{{ post.time | format_time }}</span>
             </div>
         </div>
         {% if post.text -%}

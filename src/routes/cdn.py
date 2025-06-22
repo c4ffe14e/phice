@@ -1,5 +1,5 @@
-import contextlib
 from collections.abc import Generator
+from contextlib import suppress
 
 import httpx
 from flask import Blueprint, make_response, request
@@ -37,7 +37,7 @@ def cdn(path: str) -> Response:
     }
 
     def stream() -> Generator[bytes]:
-        with contextlib.suppress(httpx.ReadTimeout):
+        with suppress(httpx.ReadTimeout):
             yield from cdn_response.iter_raw()
 
     response: Response = make_response(stream(), cdn_response.status_code, headers)
