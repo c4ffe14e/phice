@@ -4,10 +4,6 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='settings.css') }}" />
 {% endblock head %}
 
-{% macro get(option, value, attr) -%}
-    {{ attr if request.cookies.get(option, config["DEFAULT_SETTINGS"].get(option)) == value }}
-{%- endmacro %}
-
 {% block content %}
     <form id="settings" method="post">
         <h1>Settings:</h1>
@@ -15,35 +11,49 @@
         <label class="settings_row">
             Theme
             <select name="theme">
-                <option value="default">Default</option>
-                <option value="light" {{ get("theme", "light", "selected") }}>Light</option>
-                <option value="black" {{ get("theme", "black", "selected") }}>Black</option>
-                <option value="catppuccin_mocha" {{ get("theme", "catppuccin_mocha", "selected") }}>Catppuccin mocha</option>
-                <option value="catppuccin_latte" {{ get("theme", "catppuccin_latte", "selected") }}>Catppuccin latte</option>
+                <option
+                    value="default"
+                >Default</option>
+                <option
+                    value="light"
+                    {{ "selected" if get_setting("theme") == "light" }}
+                >Light</option>
+                <option
+                    value="black"
+                    {{ "selected" if get_setting("theme") == "black" }}
+                >Black</option>
+                <option
+                    value="catppuccin_mocha"
+                    {{ "selected" if get_setting("theme") == "catppuccin_mocha" }}
+                >Catppuccin mocha</option>
+                <option
+                    value="catppuccin_latte"
+                    {{ "selected" if get_setting("theme") == "catppuccin_latte" }}
+                >Catppuccin latte</option>
             </select>
         </label>
         <label class="settings_row">
             Default comments sort
             <select name="comments_sort">
-                <option value="filtered" {{ get("comments_sort", "filtered", "selected") }}>Most relevant</option>
-                <option value="newest" {{ get("comments_sort", "newest", "selected") }}>Newest</option>
-                <option value="all" {{ get("comments_sort", "all", "selected") }}>All</option>
+                <option value="filtered" {{ "selected" if get_setting("comments_sort") == "filtered" }}>Most relevant</option>
+                <option value="newest" {{ "selected" if get_setting("comments_sort") == "newest" }}>Newest</option>
+                <option value="all" {{ "selected" if get_setting("comments_sort") == "all" }}>All</option>
             </select>
         </label>
         <label class="settings_row">
             Proxy media
-            <input type="checkbox" name="proxy" {{ get("proxy", "on", "checked") }} />
+            <input type="checkbox" name="proxy" {{ "checked" if get_setting("proxy") == "on" }} />
         </label>
         <label class="settings_row">
             Expand posts
-            <input type="checkbox" name="expand" {{ get("expand", "on", "checked") }} />
+            <input type="checkbox" name="expand" {{ "checked" if get_setting("expand") == "on" }} />
         </label>
         <label class="settings_row">
             Time zone
             <input
                 type="number"
                 name="timezone"
-                value="{{ request.cookies.get('timezone', config['DEFAULT_SETTINGS'].get('timezone', 0)) }}"
+                value="{{ get_setting("timezone") or 0 }}"
                 min="-12"
                 max="14"
             />
