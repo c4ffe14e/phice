@@ -2,9 +2,10 @@ import re
 from collections.abc import Callable
 from contextlib import suppress
 from datetime import UTC, datetime
-from typing import cast
 
-from flask import current_app, request, url_for
+from flask import url_for
+
+from .lib.utils import get_setting
 
 
 def format_time(timestamp: str | float) -> str:
@@ -34,7 +35,7 @@ def format_time_full(timestamp: str | float) -> str:
     offset: int = 0
 
     with suppress(ValueError):
-        offset = int(request.cookies.get("timezone", cast("str", current_app.config["DEFAULT_SETTINGS"]["timezone"])))
+        offset = int(get_setting("timezone") or 0)
 
     time += offset * 60 * 60
 
@@ -50,7 +51,7 @@ def format_number(number: int) -> str:
 
 
 def proxy(s: str) -> str:
-    if request.cookies.get("proxy", cast("str", current_app.config["DEFAULT_SETTINGS"]["proxy"])) != "on":
+    if get_setting("proxy") != "on":
         return s
     return re.sub(r"https?://[^/]*.fbcdn.net/([^ ]*)", rf"{url_for('cdn.cdn', path='', _external=True)}\1", s)
 
