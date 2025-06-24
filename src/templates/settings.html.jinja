@@ -16,44 +16,53 @@
                 >Default</option>
                 <option
                     value="light"
-                    {{ "selected" if get_setting("theme") == "light" }}
+                    {{ "selected" if GetSetting("theme").as_str() == "light" }}
                 >Light</option>
                 <option
                     value="black"
-                    {{ "selected" if get_setting("theme") == "black" }}
+                    {{ "selected" if GetSetting("theme").as_str() == "black" }}
                 >Black</option>
                 <option
                     value="catppuccin_mocha"
-                    {{ "selected" if get_setting("theme") == "catppuccin_mocha" }}
+                    {{ "selected" if GetSetting("theme").as_str() == "catppuccin_mocha" }}
                 >Catppuccin mocha</option>
                 <option
                     value="catppuccin_latte"
-                    {{ "selected" if get_setting("theme") == "catppuccin_latte" }}
+                    {{ "selected" if GetSetting("theme").as_str() == "catppuccin_latte" }}
                 >Catppuccin latte</option>
             </select>
         </label>
         <label class="settings_row">
             Default comments sort
             <select name="comments_sort">
-                <option value="filtered" {{ "selected" if get_setting("comments_sort") == "filtered" }}>Most relevant</option>
-                <option value="newest" {{ "selected" if get_setting("comments_sort") == "newest" }}>Newest</option>
-                <option value="all" {{ "selected" if get_setting("comments_sort") == "all" }}>All</option>
+                <option
+                    value="filtered"
+                    {{ "selected" if GetSetting("comments_sort").as_str() == "filtered" }}
+                >Most relevant</option>
+                <option
+                    value="newest"
+                    {{ "selected" if GetSetting("comments_sort").as_str() == "newest" }}
+                >Newest</option>
+                <option
+                    value="all"
+                    {{ "selected" if GetSetting("comments_sort").as_str() == "all" }}
+                >All</option>
             </select>
         </label>
         <label class="settings_row">
             Proxy media
-            <input type="checkbox" name="proxy" {{ "checked" if get_setting("proxy") == "on" }} />
+            <input type="checkbox" name="proxy" {{ "checked" if GetSetting("proxy").as_bool() }} />
         </label>
         <label class="settings_row">
             Expand posts
-            <input type="checkbox" name="expand" {{ "checked" if get_setting("expand") == "on" }} />
+            <input type="checkbox" name="expand" {{ "checked" if GetSetting("expand").as_bool() }} />
         </label>
         <label class="settings_row">
             Time zone
             <input
                 type="number"
                 name="timezone"
-                value="{{ get_setting("timezone") or 0 }}"
+                value="{{ GetSetting("timezone").as_int() }}"
                 min="-12"
                 max="14"
             />
