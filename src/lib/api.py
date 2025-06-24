@@ -6,6 +6,7 @@ import httpx
 import orjson
 
 from .exceptions import ResponseError
+from .utils import get_user_agent
 
 type JSON = dict[str, Any]
 
@@ -22,7 +23,7 @@ class Api:
     def __init__(self) -> None:
         self.LSD: str = "_"
         self.HEADERS: dict[str, str] = {
-            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:139.0) Gecko/20100101 Firefox/139.0",
+            "User-Agent": get_user_agent(),
             "Accept": "*/*",
             "Accept-Language": "en-US,en;q=0.5",
             "Accept-Encoding": "zstd",

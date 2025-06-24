@@ -4,7 +4,7 @@ from werkzeug import Response
 
 from ..lib.exceptions import InvalidResponse, NotFound, ResponseError
 from ..lib.extractor import GetPost
-from ..lib.utils import nohostname
+from ..lib.utils import get_user_agent, nohostname
 
 bp: Blueprint = Blueprint("posts", __name__)
 
@@ -58,10 +58,16 @@ def posts(author: str, token: str) -> str:
 
 @bp.route("/watch")
 def watch() -> Response:
-    v: None | str = request.args.get("v")
+    v: str | None = request.args.get("v")
     if not v:
         abort(400)
-    r = httpx.get("https://www.facebook.com/watch", params={"v": v})
+    r = httpx.get(
+        "https://www.facebook.com/watch",
+        params={"v": v},
+        headers={
+            "User-Agent": get_user_agent(),
+        },
+    )
     if r.status_code != 302:
         abort(404)
 

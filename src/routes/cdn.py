@@ -5,12 +5,16 @@ import httpx
 from flask import Blueprint, make_response, request
 from werkzeug import Response
 
+from ..lib.utils import get_user_agent
+
 bp: Blueprint = Blueprint("cdn", __name__)
 
 
 @bp.route("/cdn/<path:path>")
 def cdn(path: str) -> Response:
-    cdn_headers: dict[str, str] = {}
+    cdn_headers: dict[str, str] = {
+        "User-Agent": get_user_agent(),
+    }
     if rrange := request.headers.get("range"):
         cdn_headers["range"] = rrange
 
