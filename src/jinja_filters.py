@@ -1,11 +1,10 @@
 import re
 from collections.abc import Callable
-from contextlib import suppress
 from datetime import UTC, datetime
 
 from flask import url_for
 
-from .lib.utils import get_setting
+from .flask_utils import GetSetting
 
 
 def format_time(timestamp: str | float) -> str:
@@ -32,11 +31,7 @@ def format_time(timestamp: str | float) -> str:
 
 def format_time_full(timestamp: str | float) -> str:
     time: float = float(timestamp)
-    offset: int = 0
-
-    with suppress(ValueError):
-        offset = int(get_setting("timezone") or 0)
-
+    offset: int = GetSetting("timezone").as_int()
     time += offset * 60 * 60
 
     return datetime.fromtimestamp(time, tz=UTC).strftime(f"%Y/%m/%d - %I:%M:%S %p UTC{offset:+}")
@@ -51,9 +46,9 @@ def format_number(number: int) -> str:
 
 
 def proxy(s: str) -> str:
-    if get_setting("proxy") != "on":
-        return s
-    return re.sub(r"https?://[^/]*.fbcdn.net/([^ ]*)", rf"{url_for('cdn.cdn', path='', _external=True)}\1", s)
+    if GetSetting("proxy").as_bool():
+        return re.sub(r"https?://[^/]*.fbcdn.net/([^ ]*)", rf"{url_for('cdn.cdn', path='', _external=True)}\1", s)
+    return s
 
 
 FILTERS: dict[str, Callable[..., str]] = {
