@@ -3,6 +3,7 @@ name = "Phice"
 version = "0.0.1"
 description = "A lightweight privacy-friendly alternative front-end for Facebook"
 readme = "README.md"
+license = "AGPL-3.0"
 requires-python = ">=3.13"
 dependencies = [
     "flask>=3.1.1",
