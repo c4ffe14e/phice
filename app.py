@@ -1,5 +1,5 @@
-import os
+from pathlib import Path
 
 from src import create_app
 
-app = create_app(os.path.abspath("config.json"))
+app = create_app(Path("./config.json").resolve())

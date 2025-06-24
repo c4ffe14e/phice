@@ -9,12 +9,12 @@ from .exceptions import ResponseError
 
 type JSON = dict[str, Any]
 
-data_path: Path = Path(__file__).resolve().parent / "data"
+DATA_PATH: Path = Path(__file__).resolve().parent / "data"
 
-with (data_path / "doc_ids.json").open("r") as f:
+with (DATA_PATH / "doc_ids.json").open("r") as f:
     DOC_IDS: JSON = orjson.loads(f.read())
 
-with (data_path / "extra_variables.json").open("r") as f:
+with (DATA_PATH / "extra_variables.json").open("r") as f:
     EXTRA_VARIABLES: JSON = orjson.loads(f.read())
 
 

@@ -1,5 +1,6 @@
 import json
 from importlib import import_module
+from pathlib import Path
 
 from flask import Flask
 
@@ -7,7 +8,7 @@ from .jinja_filters import FILTERS
 from .jinja_globals import GLOBALS
 
 
-def create_app(config_file: str) -> Flask:
+def create_app(config_file: Path) -> Flask:
     app: Flask = Flask(__name__)
 
     app.config.from_file(config_file, load=json.load)
