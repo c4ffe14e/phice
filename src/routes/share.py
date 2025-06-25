@@ -14,7 +14,10 @@ bp: Blueprint = Blueprint("share", __name__)
 def share(path: str) -> Response:
     r = httpx.get(
         f"https://www.facebook.com/share/{path}",
-        headers={"User-Agent": get_user_agent()},
+        headers={
+            "User-Agent": get_user_agent(),
+            "Sec-Fetch-Mode": "navigate",
+        },
         proxy=get_proxy(),
     )
     if r.status_code != 302:
