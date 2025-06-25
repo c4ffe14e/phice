@@ -17,14 +17,13 @@ class GetProfile:
         header: JSON = api.ProfileCometHeaderQuery(user_id)[0]["data"]["user"]["profile_header_renderer"]["user"]
         side: JSON = api.ProfilePlusCometLoggedOutRootQuery(user_id)[-1]["data"]["profile_tile_sections"]["edges"][0]["node"]
         posts_feed: list[JSON] = api.ProfileCometTimelineFeedQuery(user_id)
-        token: str = user_id if header["url"].startswith("https://www.facebook.com/people/") else urlbasename(header["url"])
 
         self.cursor: str | None = start_cursor
         self.has_next: bool = bool(start_cursor)
         self.posts: list[Post] = []
         self.feed: Feed = Feed(
             id=user_id,
-            token=token,
+            token=user_id if header["url"].startswith("https://www.facebook.com/people/") else urlbasename(header["url"]),
             name=header["name"],
             verified=header["show_verified_badge_on_profile"],
         )
