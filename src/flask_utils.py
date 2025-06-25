@@ -34,7 +34,7 @@ class GetSetting:
 def get_proxy() -> str | None:
     try:
         ret: Any = cast("Any", current_app.config["NETWORK"]["proxy"])
-        if ret is None:
+        if ret is None or ret == "":
             return None
         return str(ret)
     except KeyError:
