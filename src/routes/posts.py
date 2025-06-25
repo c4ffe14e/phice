@@ -2,6 +2,7 @@ import httpx
 from flask import Blueprint, abort, redirect, render_template, request
 from werkzeug import Response
 
+from ..flask_utils import get_proxy
 from ..lib.exceptions import InvalidResponse, NotFound, ResponseError
 from ..lib.extractor import GetPost
 from ..lib.utils import get_user_agent, nohostname
@@ -22,6 +23,7 @@ def posts(author: str, token: str) -> str:
         request.args.get("cursor"),
         request.args.get("comment_id"),
         request.args.get("sort"),
+        proxy=get_proxy(),
     )
 
     try:
@@ -64,9 +66,8 @@ def watch() -> Response:
     r = httpx.get(
         "https://www.facebook.com/watch",
         params={"v": v},
-        headers={
-            "User-Agent": get_user_agent(),
-        },
+        headers={"User-Agent": get_user_agent()},
+        proxy=get_proxy(),
     )
     if r.status_code != 302:
         abort(404)

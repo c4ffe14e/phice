@@ -8,8 +8,14 @@ from .utils import base64s, base64s_decode, urlbasename
 
 
 class GetProfile:
-    def __init__(self, username: str, start_cursor: str | None) -> None:
-        api: Api = Api()
+    def __init__(
+        self,
+        username: str,
+        start_cursor: str | None,
+        *,
+        proxy: str | None = None,
+    ) -> None:
+        api: Api = Api(proxy=proxy)
         route, route_type = api.route(f"/{username}", redirect=True)
         if not route or route_type != "profile":
             raise NotFound
@@ -92,8 +98,15 @@ class GetProfile:
 
 
 class GetPost:
-    def __init__(self, start_cursor: str | None, focus: str | None = None, sort: str | None = None) -> None:
-        self.__api: Api = Api()
+    def __init__(
+        self,
+        start_cursor: str | None,
+        focus: str | None = None,
+        sort: str | None = None,
+        *,
+        proxy: str | None = None,
+    ) -> None:
+        self.__api: Api = Api(proxy=proxy)
 
         self.id: str | None = None
         self.cursor: str | None = start_cursor
@@ -225,8 +238,14 @@ class GetPost:
 
 
 class GetGroup:
-    def __init__(self, token: str, start_cursor: str | None) -> None:
-        api: Api = Api()
+    def __init__(
+        self,
+        token: str,
+        start_cursor: str | None,
+        *,
+        proxy: str | None = None,
+    ) -> None:
+        api: Api = Api(proxy=proxy)
         route, route_type = api.route(f"/groups/{token}")
         if not route or route_type != "group":
             raise NotFound
@@ -289,10 +308,16 @@ class GetGroup:
 
 
 class GetAlbum:
-    def __init__(self, token: str | None, start_cursor: str | None) -> None:
+    def __init__(
+        self,
+        token: str | None,
+        start_cursor: str | None,
+        *,
+        proxy: str | None = None,
+    ) -> None:
         if not token:
             raise NotFound
-        api: Api = Api()
+        api: Api = Api(proxy=proxy)
         album: JSON | None = api.CometPhotoAlbumQuery(token)[0]["data"]["album"]
         if not album:
             raise NotFound
@@ -344,14 +369,21 @@ class GetAlbum:
 
 
 class Search:
-    def __init__(self, query: str, category: str | None, start_cursor: str | None) -> None:
+    def __init__(
+        self,
+        query: str,
+        category: str | None,
+        start_cursor: str | None,
+        *,
+        proxy: str | None = None,
+    ) -> None:
         self.cursor: str | None = start_cursor
         self.has_next: bool = bool(start_cursor)
         self.results: list[User | Post] = []
         if not query:
             return
 
-        api: Api = Api()
+        api: Api = Api(proxy=proxy)
         filters: list[str] = []
         search_type: str
         match category:

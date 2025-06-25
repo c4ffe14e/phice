@@ -4,6 +4,7 @@ from werkzeug import Response
 
 from src.lib.utils import nohostname
 
+from ..flask_utils import get_proxy
 from ..lib.utils import get_user_agent
 
 bp: Blueprint = Blueprint("share", __name__)
@@ -13,9 +14,8 @@ bp: Blueprint = Blueprint("share", __name__)
 def share(path: str) -> Response:
     r = httpx.get(
         f"https://www.facebook.com/share/{path}",
-        headers={
-            "User-Agent": get_user_agent(),
-        },
+        headers={"User-Agent": get_user_agent()},
+        proxy=get_proxy(),
     )
     if r.status_code != 302:
         abort(404)
