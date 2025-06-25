@@ -20,7 +20,7 @@ with (DATA_PATH / "extra_variables.json").open("r") as f:
 
 
 class Api:
-    def __init__(self) -> None:
+    def __init__(self, *, proxy: str | None = None) -> None:
         self.LSD: str = "_"
         self.HEADERS: dict[str, str] = {
             "User-Agent": get_user_agent(),
@@ -40,6 +40,7 @@ class Api:
             headers=self.HEADERS,
             base_url="https://www.facebook.com",
             timeout=15,
+            proxy=proxy,
         )
 
     def __fetch(self, doc_id: int, variables: JSON, *, fuck_facebook: bool = False) -> list[JSON]:

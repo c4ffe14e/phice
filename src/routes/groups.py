@@ -1,5 +1,6 @@
 from flask import Blueprint, abort, current_app, render_template, request
 
+from ..flask_utils import get_proxy
 from ..lib.exceptions import InvalidResponse, NotFound, ResponseError
 from ..lib.extractor import GetGroup
 
@@ -9,7 +10,7 @@ bp: Blueprint = Blueprint("groups", __name__)
 @bp.route("/groups/<string:token>")
 def groups(token: str) -> str | tuple[str, dict[str, str]]:
     try:
-        group = GetGroup(token, request.args.get("cursor"))
+        group = GetGroup(token, request.args.get("cursor"), proxy=get_proxy())
     except NotFound:
         abort(404, f"{token} not found")
     except (InvalidResponse, ResponseError) as e:

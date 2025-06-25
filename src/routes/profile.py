@@ -1,5 +1,6 @@
 from flask import Blueprint, abort, current_app, render_template, request
 
+from ..flask_utils import get_proxy
 from ..lib.exceptions import InvalidResponse, NotFound, ResponseError
 from ..lib.extractor import GetProfile
 
@@ -13,7 +14,7 @@ def profile(username: str = "", _: str | None = None) -> str | tuple[str, dict[s
     token: str = request.args.get("id", "") if request.endpoint == "php" else username
 
     try:
-        profile = GetProfile(token, request.args.get("cursor"))
+        profile = GetProfile(token, request.args.get("cursor"), proxy=get_proxy())
     except NotFound:
         abort(404, f"{username} not found")
     except (InvalidResponse, ResponseError) as e:

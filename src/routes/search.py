@@ -1,5 +1,6 @@
 from flask import Blueprint, abort, render_template, request
 
+from ..flask_utils import get_proxy
 from ..lib.exceptions import InvalidResponse, ResponseError
 from ..lib.extractor import Search
 
@@ -17,6 +18,7 @@ def search() -> str:
             query,
             request.args.get("t"),
             request.args.get("cursor"),
+            proxy=get_proxy(),
         )
     except (InvalidResponse, ResponseError) as e:
         abort(500, ", ".join(e.args))

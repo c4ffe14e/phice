@@ -29,3 +29,13 @@ class GetSetting:
             ret = int(self.__value)
 
         return ret
+
+
+def get_proxy() -> str | None:
+    try:
+        ret: Any = cast("Any", current_app.config["NETWORK"]["proxy"])
+        if ret is None:
+            return None
+        return str(ret)
+    except KeyError:
+        return None

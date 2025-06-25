@@ -6,5 +6,8 @@
         "proxy": true,
         "expand": false,
         "timezone": 0
+    },
+    "NETWORK": {
+        "proxy": ""
     }
 }

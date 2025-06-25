@@ -5,6 +5,7 @@ import httpx
 from flask import Blueprint, make_response, request
 from werkzeug import Response
 
+from ..flask_utils import get_proxy
 from ..lib.utils import get_user_agent
 
 bp: Blueprint = Blueprint("cdn", __name__)
@@ -12,13 +13,11 @@ bp: Blueprint = Blueprint("cdn", __name__)
 
 @bp.route("/cdn/<path:path>")
 def cdn(path: str) -> Response:
-    cdn_headers: dict[str, str] = {
-        "User-Agent": get_user_agent(),
-    }
+    cdn_headers: dict[str, str] = {"User-Agent": get_user_agent()}
     if rrange := request.headers.get("range"):
         cdn_headers["range"] = rrange
 
-    client: httpx.Client = httpx.Client(headers=cdn_headers)
+    client: httpx.Client = httpx.Client(headers=cdn_headers, proxy=get_proxy())
     cdn_request: httpx.Request = client.build_request("GET", f"https://scontent.xx.fbcdn.net/{path}", params=request.query_string)
     cdn_response: httpx.Response = client.send(cdn_request, stream=True)
 
