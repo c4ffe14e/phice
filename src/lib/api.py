@@ -1,11 +1,13 @@
 import inspect
+from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
 import httpx
 import orjson
+from bs4 import BeautifulSoup, Tag
 
-from .exceptions import ResponseError
+from .exceptions import RateLimitError, ResponseError
 from .utils import get_user_agent
 
 type JSON = dict[str, Any]
@@ -21,13 +23,13 @@ with (DATA_PATH / "extra_variables.json").open("r") as f:
 
 class Api:
     def __init__(self, *, proxy: str | None = None) -> None:
-        self.LSD: str = "_"
-        self.HEADERS: dict[str, str] = {
+        self.lsd: str = "_"
+        self.headers: dict[str, str] = {
             "User-Agent": get_user_agent(),
             "Accept": "*/*",
             "Accept-Language": "en-US,en;q=0.5",
             "Accept-Encoding": "zstd",
-            "X-FB-LSD": self.LSD,
+            "X-FB-LSD": self.lsd,
             "Origin": "https://www.facebook.com",
             "Alt-Used": "www.facebook.com",
             "Connection": "keep-alive",
@@ -36,20 +38,20 @@ class Api:
             "Sec-Fetch-Site": "same-origin",
             "TE": "trailers",
         }
-        self.__client: httpx.Client = httpx.Client(
-            headers=self.HEADERS,
+        self.client: httpx.Client = httpx.Client(
+            headers=self.headers,
             base_url="https://www.facebook.com",
             timeout=15,
             proxy=proxy,
         )
 
-    def __fetch(self, doc_id: int, variables: JSON, *, fuck_facebook: bool = False) -> list[JSON]:
-        response: httpx.Response = self.__client.post(
+    def fetch(self, doc_id: int, variables: JSON, *, fuck_facebook: bool = False) -> list[JSON]:
+        response: httpx.Response = self.client.post(
             "/api/graphql/",
             data={
                 "__a": "1",
                 "__comet_req": "15",
-                "lsd": self.LSD,
+                "lsd": self.lsd,
                 "variables": orjson.dumps(variables | EXTRA_VARIABLES).decode(),
                 "doc_id": doc_id,
             },
@@ -59,19 +61,22 @@ class Api:
         result: list[JSON] = [orjson.loads(i) for i in response.text.splitlines()]
         errors: list[JSON] | None = result[0].get("errors")
 
-        if errors and not (fuck_facebook and "field_exception" in errors[0]["message"]):
-            raise ResponseError(f"{inspect.stack()[1].function}: " + ", ".join(i["message"] for i in errors))
+        if errors:
+            if errors[0].get("code") == 1675004:
+                raise RateLimitError
+            if not (fuck_facebook and "field_exception" in errors[0]["message"]):
+                raise ResponseError(f"{inspect.stack()[1].function}: " + ", ".join(i["message"] for i in errors))
 
         return result
 
     def route(self, url: str, *, redirect: bool = False) -> tuple[JSON | None, str | None]:
-        response: httpx.Response = self.__client.post(
+        response: httpx.Response = self.client.post(
             "/ajax/navigation/",
             data={
                 "route_url": url,
                 "__a": "1",
                 "__comet_req": "15",
-                "lsd": self.LSD,
+                "lsd": self.lsd,
             },
         )
         result: JSON = orjson.loads(response.text[9:])["payload"].get("payload", {}).get("result", {})
@@ -86,10 +91,43 @@ class Api:
         return result["exports"], result["exports"]["entityKeyConfig"]["entity_type"]["value"]
 
     def close(self) -> None:
-        self.__client.close()
+        self.client.close()
+
+    # EXPERIMENTAL
+    def from_html(self, url: str) -> dict[str, list[JSON]]:
+        response: httpx.Response = self.client.get(
+            url,
+            follow_redirects=True,
+        )
+        if response.status_code != 200:
+            raise ResponseError(f"Facebook returned {response.status_code}")
+
+        soup: BeautifulSoup = BeautifulSoup(response.text, "lxml")
+
+        data_script_tags = soup.find_all(
+            lambda t: t.name == "script" and t.get("type") == "application/json" and not t.has_attr("id")
+        )
+
+        ret: defaultdict[str, list[JSON]] = defaultdict(list)
+        for tag in data_script_tags:
+            if isinstance(tag, Tag) and tag.string is not None:
+                try:
+                    parsed_json: JSON | list[JSON] = orjson.loads(str(tag.string))["require"][0][3][0]
+                except IndexError:
+                    continue
+                if isinstance(parsed_json, dict) and "__bbox" in parsed_json:
+                    for obj in parsed_json["__bbox"]["require"]:
+                        if obj[0].startswith("RelayPrefetchedStreamCache"):
+                            ret[obj[3][0][4:].rsplit("_", 1)[0][:-14]].append(obj[3][1]["__bbox"]["result"])
+
+        lsd_tag = soup.find("script", id="__eqmc", type="application/json")
+        if isinstance(lsd_tag, Tag) and lsd_tag.string is not None:
+            self.lsd = orjson.loads(str(lsd_tag.string)).get("l", "_")
+
+        return dict(ret)
 
     def ProfileCometHeaderQuery(self, user_id: str) -> list[JSON]:
-        return self.__fetch(
+        return self.fetch(
             DOC_IDS["ProfileCometHeaderQuery"],
             {
                 "scale": 1,
@@ -101,7 +139,7 @@ class Api:
         )
 
     def ProfilePlusCometLoggedOutRootQuery(self, user_id: str) -> list[JSON]:
-        return self.__fetch(
+        return self.fetch(
             DOC_IDS["ProfilePlusCometLoggedOutRootQuery"],
             {
                 "scale": 1,
@@ -110,7 +148,7 @@ class Api:
         )
 
     def ProfileCometTimelineFeedQuery(self, user_id: str) -> list[JSON]:
-        return self.__fetch(
+        return self.fetch(
             DOC_IDS["ProfileCometTimelineFeedQuery"],
             {
                 "count": 1,
@@ -126,7 +164,7 @@ class Api:
         )
 
     def ProfileCometTimelineFeedRefetchQuery(self, user_id: str, cursor: str | None) -> list[JSON]:
-        return self.__fetch(
+        return self.fetch(
             DOC_IDS["ProfileCometTimelineFeedRefetchQuery"],
             {
                 "afterTime": None,
@@ -152,7 +190,7 @@ class Api:
         )
 
     def CometSinglePostDialogContentQuery(self, story_id: str, focus_id: str | None = None) -> list[JSON]:
-        return self.__fetch(
+        return self.fetch(
             DOC_IDS["CometSinglePostDialogContentQuery"],
             {
                 "feedbackSource": 2,
@@ -167,7 +205,7 @@ class Api:
         )
 
     def CommentsListComponentsPaginationQuery(self, feedback_id: str, cursor: str | None) -> list[JSON]:
-        return self.__fetch(
+        return self.fetch(
             DOC_IDS["CommentsListComponentsPaginationQuery"],
             {
                 "commentsAfterCount": -1,
@@ -184,7 +222,7 @@ class Api:
         )
 
     def CommentListComponentsRootQuery(self, feedback_id: str, sort: str, focus_id: str | None = None) -> list[JSON]:
-        return self.__fetch(
+        return self.fetch(
             DOC_IDS["CommentListComponentsRootQuery"],
             {
                 "commentsIntentToken": sort,
@@ -198,7 +236,7 @@ class Api:
         )
 
     def Depth1CommentsListPaginationQuery(self, feedback_id: str, expansion_token: str, cursor: str | None) -> list[JSON]:
-        return self.__fetch(
+        return self.fetch(
             DOC_IDS["Depth1CommentsListPaginationQuery"],
             {
                 "clientKey": None,
@@ -216,7 +254,7 @@ class Api:
         )
 
     def FBReelsRootWithEntrypointQuery(self, reel_id: str) -> list[JSON]:
-        return self.__fetch(
+        return self.fetch(
             DOC_IDS["FBReelsRootWithEntrypointQuery"],
             {
                 "count": 0,
@@ -237,7 +275,7 @@ class Api:
         )
 
     def CometGroupRootQuery(self, group_id: str) -> list[JSON]:
-        return self.__fetch(
+        return self.fetch(
             DOC_IDS["CometGroupRootQuery"],
             {
                 "groupID": group_id,
@@ -248,7 +286,7 @@ class Api:
         )
 
     def GroupsCometDiscussionLayoutRootQuery(self, group_id: str) -> list[JSON]:
-        return self.__fetch(
+        return self.fetch(
             DOC_IDS["GroupsCometDiscussionLayoutRootQuery"],
             {
                 "groupID": group_id,
@@ -257,7 +295,7 @@ class Api:
         )
 
     def CometGroupDiscussionRootSuccessQuery(self, group_id: str) -> list[JSON]:
-        return self.__fetch(
+        return self.fetch(
             DOC_IDS["CometGroupDiscussionRootSuccessQuery"],
             {
                 "autoOpenChat": False,
@@ -285,7 +323,7 @@ class Api:
         )
 
     def GroupsCometFeedRegularStoriesPaginationQuery(self, group_id: str, cursor: str | None) -> list[JSON]:
-        return self.__fetch(
+        return self.fetch(
             DOC_IDS["GroupsCometFeedRegularStoriesPaginationQuery"],
             {
                 "count": 3,
@@ -305,7 +343,7 @@ class Api:
         )
 
     def CometPhotoAlbumQuery(self, token: str) -> list[JSON]:
-        return self.__fetch(
+        return self.fetch(
             DOC_IDS["CometPhotoAlbumQuery"],
             {
                 "feedbackSource": 65,
@@ -320,7 +358,7 @@ class Api:
         )
 
     def CometAlbumPhotoCollagePaginationQuery(self, album_id: str, cursor: str | None) -> list[JSON]:
-        return self.__fetch(
+        return self.fetch(
             DOC_IDS["CometAlbumPhotoCollagePaginationQuery"],
             {
                 "count": 14,
@@ -332,7 +370,7 @@ class Api:
         )
 
     def CometPhotoRootContentQuery(self, node_id: str) -> list[JSON]:
-        return self.__fetch(
+        return self.fetch(
             DOC_IDS["CometPhotoRootContentQuery"],
             {
                 "feedbackSource": 65,
@@ -355,7 +393,7 @@ class Api:
         cursor: str | None,
         filters: list[str] | None = None,
     ) -> list[JSON]:
-        return self.__fetch(
+        return self.fetch(
             DOC_IDS["SearchCometResultsPaginatedResultsQuery"],
             {
                 "allow_streaming": False,

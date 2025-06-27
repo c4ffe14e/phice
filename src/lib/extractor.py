@@ -20,6 +20,7 @@ class GetProfile:
         if not route or route_type != "profile":
             raise NotFound
         user_id: str = route["rootView"]["props"]["userID"]
+
         header: JSON = api.ProfileCometHeaderQuery(user_id)[0]["data"]["user"]["profile_header_renderer"]["user"]
         side: JSON = api.ProfilePlusCometLoggedOutRootQuery(user_id)[-1]["data"]["profile_tile_sections"]["edges"][0]["node"]
         posts_feed: list[JSON] = api.ProfileCometTimelineFeedQuery(user_id)

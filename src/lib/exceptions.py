@@ -8,3 +8,7 @@ class NotFound(Exception):
 
 class ResponseError(Exception):
     pass
+
+
+class RateLimitError(Exception):
+    pass

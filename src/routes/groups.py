@@ -1,7 +1,7 @@
 from flask import Blueprint, abort, current_app, render_template, request
 
 from ..flask_utils import get_proxy
-from ..lib.exceptions import InvalidResponse, NotFound, ResponseError
+from ..lib.exceptions import InvalidResponse, NotFound, RateLimitError, ResponseError
 from ..lib.extractor import GetGroup
 
 bp: Blueprint = Blueprint("groups", __name__)
@@ -13,6 +13,8 @@ def groups(token: str) -> str | tuple[str, dict[str, str]]:
         group = GetGroup(token, request.args.get("cursor"), proxy=get_proxy())
     except NotFound:
         abort(404, f"{token} not found")
+    except RateLimitError:
+        abort(500, "Got rate-limited")
     except (InvalidResponse, ResponseError) as e:
         abort(500, ", ".join(e.args))
 
