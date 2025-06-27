@@ -3,7 +3,7 @@ from flask import Blueprint, abort, redirect, render_template, request
 from werkzeug import Response
 
 from ..flask_utils import get_proxy
-from ..lib.exceptions import InvalidResponse, NotFound, ResponseError
+from ..lib.exceptions import InvalidResponse, NotFound, RateLimitError, ResponseError
 from ..lib.extractor import GetPost
 from ..lib.utils import get_user_agent, nohostname
 
@@ -42,6 +42,8 @@ def posts(author: str, token: str) -> str:
                 post.from_post(author, token)
     except NotFound:
         abort(404, "Post not found")
+    except RateLimitError:
+        abort(500, "Got rate-limited")
     except (InvalidResponse, ResponseError) as e:
         abort(500, ", ".join(e.args))
 
