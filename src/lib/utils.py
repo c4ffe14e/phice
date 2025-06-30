@@ -16,6 +16,3 @@ def urlbasename(url: str) -> str:
 
 def nohostname(url: str) -> str:
     return urlparse(url)._replace(netloc="", scheme="").geturl()
-
-def get_user_agent() -> str:
-    return "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:139.0) Gecko/20100101 Firefox/139.0"
