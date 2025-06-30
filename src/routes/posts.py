@@ -46,9 +46,7 @@ def posts(author: str, token: str) -> str:
                 post.from_post(author, token)
     except NotFound:
         abort(404, "Post not found")
-    except RateLimitError:
-        abort(500, "Got rate-limited")
-    except (InvalidResponse, ResponseError) as e:
+    except (InvalidResponse, ResponseError, RateLimitError) as e:
         abort(500, ", ".join(e.args))
 
     if post.post is None:

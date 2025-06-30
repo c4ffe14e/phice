@@ -17,9 +17,7 @@ def profile(username: str = "", _: str | None = None) -> str | tuple[str, dict[s
         profile = GetProfile(token, request.args.get("cursor"), proxy=get_proxy())
     except NotFound:
         abort(404, f"{username} not found")
-    except RateLimitError:
-        abort(500, "Got rate-limited")
-    except (InvalidResponse, ResponseError) as e:
+    except (InvalidResponse, ResponseError, RateLimitError) as e:
         abort(500, ", ".join(e.args))
 
     if request.args.get("rss"):
