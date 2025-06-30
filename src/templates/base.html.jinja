@@ -35,12 +35,12 @@
                 <span id="name">Phice</span>
             </a>
             <div id="header_buttons">
-                <a href="{{ url_for('home.home') }}">{{ icon("search") }}</a>
+                <a href="{{ url_for('home.home') }}" title="Search">{{ icon("search") }}</a>
                 {% if config["ENABLE_RSS"] and request.endpoint in ("profile.profile", "groups.groups") %}
-                    <a href="?rss=1">{{ icon("rss") }}</a>
+                    <a href="?rss=1" title="RSS Feed">{{ icon("rss") }}</a>
                 {% endif %}
-                <a href="{{ 'https://facebook.com' + request.full_path }}">{{ icon("facebook") }}</a>
-                <a href="{{ url_for('settings.settings') }}">{{ icon("gear") }}</a>
+                <a href="{{ 'https://facebook.com' + request.full_path }}" title="View on Facebook">{{ icon("facebook") }}</a>
+                <a href="{{ url_for('settings.settings') }}" title="Settings">{{ icon("gear") }}</a>
             </div>
         </header>
         <main>
