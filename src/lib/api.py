@@ -1,4 +1,3 @@
-import inspect
 from collections import defaultdict
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -57,7 +56,7 @@ class Api:
             if errors[0].get("code") == 1675004:
                 raise RateLimitError
             if not (fuck_facebook and "field_exception" in errors[0]["message"]):
-                raise ResponseError(f"{inspect.stack()[1].function}: " + ", ".join(i["message"] for i in errors))
+                raise ResponseError(f"{name}: " + ", ".join(i["message"] for i in errors))
 
         return result
 
