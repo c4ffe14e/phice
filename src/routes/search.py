@@ -20,9 +20,7 @@ def search() -> str:
             request.args.get("cursor"),
             proxy=get_proxy(),
         )
-    except RateLimitError:
-        abort(500, "Got rate-limited")
-    except (InvalidResponse, ResponseError) as e:
+    except (InvalidResponse, ResponseError, RateLimitError) as e:
         abort(500, ", ".join(e.args))
 
     return render_template(

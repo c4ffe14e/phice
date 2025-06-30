@@ -54,7 +54,7 @@ class Api:
 
         if errors:
             if errors[0].get("code") == 1675004:
-                raise RateLimitError
+                raise RateLimitError(f"{name}: Rate limit")
             if not (fuck_facebook and "field_exception" in errors[0]["message"]):
                 raise ResponseError(f"{name}: " + ", ".join(i["message"] for i in errors))
 

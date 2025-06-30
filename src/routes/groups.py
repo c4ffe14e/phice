@@ -13,9 +13,7 @@ def groups(token: str) -> str | tuple[str, dict[str, str]]:
         group = GetGroup(token, request.args.get("cursor"), proxy=get_proxy())
     except NotFound:
         abort(404, f"{token} not found")
-    except RateLimitError:
-        abort(500, "Got rate-limited")
-    except (InvalidResponse, ResponseError) as e:
+    except (InvalidResponse, ResponseError, RateLimitError) as e:
         abort(500, ", ".join(e.args))
 
     if request.args.get("rss"):

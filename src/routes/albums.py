@@ -13,9 +13,7 @@ def albums() -> str:
         album = GetAlbum(request.args.get("set"), request.args.get("cursor"), proxy=get_proxy())
     except NotFound:
         abort(404, "Album not found")
-    except RateLimitError:
-        abort(500, "Got rate-limited")
-    except (InvalidResponse, ResponseError) as e:
+    except (InvalidResponse, ResponseError, RateLimitError) as e:
         abort(500, ", ".join(e.args))
 
     return render_template(
