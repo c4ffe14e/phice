@@ -36,7 +36,7 @@
             </a>
             <div id="header_buttons">
                 <a href="{{ url_for('home.home') }}" title="Search">{{ icon("search") }}</a>
-                {% if config["ENABLE_RSS"] and request.endpoint in ("profile.profile", "groups.groups") %}
+                {% if config.get("ENABLE_RSS") and request.endpoint in ("profile.profile", "groups.groups") %}
                     <a href="?rss=1" title="RSS Feed">{{ icon("rss") }}</a>
                 {% endif %}
                 <a href="{{ 'https://facebook.com' + request.full_path }}" title="View on Facebook">{{ icon("facebook") }}</a>
