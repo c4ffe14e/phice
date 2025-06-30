@@ -1,11 +1,15 @@
-import httpx
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import httpx
 from flask import Blueprint, abort, redirect, render_template, request
 from werkzeug import Response
 
 from ..flask_utils import get_proxy
 from ..lib.exceptions import InvalidResponse, NotFound, RateLimitError, ResponseError
 from ..lib.extractor import GetPost
-from ..lib.utils import get_user_agent, nohostname
+from ..lib.utils import nohostname
+from ..lib.wrappers import http_client
 
 bp: Blueprint = Blueprint("posts", __name__)
 
@@ -65,13 +69,16 @@ def watch() -> Response:
     v: str | None = request.args.get("v")
     if not v:
         abort(400)
-    r = httpx.get(
-        "https://www.facebook.com/watch",
-        params={"v": v},
-        headers={"User-Agent": get_user_agent()},
-        proxy=get_proxy(),
-    )
-    if r.status_code != 302:
+
+    with http_client(proxy=get_proxy()) as client:
+        r: httpx.Response = client.get(
+            "https://www.facebook.com/watch",
+            params={"v": v},
+            follow_redirects=False,
+        )
+    location: str | None = r.headers.get("location")
+
+    if r.status_code != 302 or location is None:
         abort(404)
 
-    return redirect(nohostname(r.headers["location"]))
+    return redirect(nohostname(location))

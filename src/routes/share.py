@@ -1,26 +1,25 @@
-import httpx
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import httpx
 from flask import Blueprint, abort, redirect
 from werkzeug import Response
 
 from src.lib.utils import nohostname
 
 from ..flask_utils import get_proxy
-from ..lib.utils import get_user_agent
+from ..lib.wrappers import http_client
 
 bp: Blueprint = Blueprint("share", __name__)
 
 
 @bp.route("/share/<path:path>")
 def share(path: str) -> Response:
-    r = httpx.get(
-        f"https://www.facebook.com/share/{path}",
-        headers={
-            "User-Agent": get_user_agent(),
-            "Sec-Fetch-Mode": "navigate",
-        },
-        proxy=get_proxy(),
-    )
-    if r.status_code != 302:
+    with http_client(proxy=get_proxy()) as client:
+        r: httpx.Response = client.get(f"https://www.facebook.com/share/{path}")
+    location: str | None = r.headers.get("location")
+
+    if r.status_code != 302 or location is None:
         abort(404)
 
-    return redirect(nohostname(r.headers["location"]))
+    return redirect(nohostname(location))

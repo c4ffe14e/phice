@@ -1,14 +1,15 @@
 import inspect
 from collections import defaultdict
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-import httpx
+if TYPE_CHECKING:
+    import httpx
 import orjson
 from bs4 import BeautifulSoup, Tag
 
 from .exceptions import RateLimitError, ResponseError
-from .utils import get_user_agent
+from .wrappers import http_client
 
 type JSON = dict[str, Any]
 
@@ -24,28 +25,19 @@ with (DATA_PATH / "extra_variables.json").open("r") as f:
 class Api:
     def __init__(self, *, proxy: str | None = None) -> None:
         self.lsd: str = "_"
-        self.headers: dict[str, str] = {
-            "User-Agent": get_user_agent(),
-            "Accept": "*/*",
-            "Accept-Language": "en-US,en;q=0.5",
-            "Accept-Encoding": "zstd",
-            "X-FB-LSD": self.lsd,
-            "Origin": "https://www.facebook.com",
-            "Alt-Used": "www.facebook.com",
-            "Connection": "keep-alive",
-            "Sec-Fetch-Dest": "empty",
-            "Sec-Fetch-Mode": "cors",
-            "Sec-Fetch-Site": "same-origin",
-            "TE": "trailers",
-        }
-        self.client: httpx.Client = httpx.Client(
-            headers=self.headers,
+        self.client: httpx.Client = http_client(
+            headers={
+                "Accept": "*/*",
+                "X-FB-LSD": self.lsd,
+                "Origin": "https://www.facebook.com",
+                "Sec-Fetch-Dest": "empty",
+                "Sec-Fetch-Mode": "cors",
+            },
             base_url="https://www.facebook.com",
-            timeout=15,
             proxy=proxy,
         )
 
-    def fetch(self, doc_id: int, variables: JSON, *, fuck_facebook: bool = False) -> list[JSON]:
+    def fetch(self, name: str, variables: JSON, *, fuck_facebook: bool = False) -> list[JSON]:
         response: httpx.Response = self.client.post(
             "/api/graphql/",
             data={
@@ -53,7 +45,7 @@ class Api:
                 "__comet_req": "15",
                 "lsd": self.lsd,
                 "variables": orjson.dumps(variables | EXTRA_VARIABLES).decode(),
-                "doc_id": doc_id,
+                "doc_id": DOC_IDS[name],
             },
         )
         if response.status_code != 200:
@@ -128,7 +120,7 @@ class Api:
 
     def ProfileCometHeaderQuery(self, user_id: str) -> list[JSON]:
         return self.fetch(
-            DOC_IDS["ProfileCometHeaderQuery"],
+            "ProfileCometHeaderQuery",
             {
                 "scale": 1,
                 "selectedID": user_id,
@@ -140,7 +132,7 @@ class Api:
 
     def ProfilePlusCometLoggedOutRootQuery(self, user_id: str) -> list[JSON]:
         return self.fetch(
-            DOC_IDS["ProfilePlusCometLoggedOutRootQuery"],
+            "ProfilePlusCometLoggedOutRootQuery",
             {
                 "scale": 1,
                 "userID": user_id,
@@ -149,7 +141,7 @@ class Api:
 
     def ProfileCometTimelineFeedQuery(self, user_id: str) -> list[JSON]:
         return self.fetch(
-            DOC_IDS["ProfileCometTimelineFeedQuery"],
+            "ProfileCometTimelineFeedQuery",
             {
                 "count": 1,
                 "feedbackSource": 0,
@@ -165,7 +157,7 @@ class Api:
 
     def ProfileCometTimelineFeedRefetchQuery(self, user_id: str, cursor: str | None) -> list[JSON]:
         return self.fetch(
-            DOC_IDS["ProfileCometTimelineFeedRefetchQuery"],
+            "ProfileCometTimelineFeedRefetchQuery",
             {
                 "afterTime": None,
                 "beforeTime": None,
@@ -191,7 +183,7 @@ class Api:
 
     def CometSinglePostDialogContentQuery(self, story_id: str, focus_id: str | None = None) -> list[JSON]:
         return self.fetch(
-            DOC_IDS["CometSinglePostDialogContentQuery"],
+            "CometSinglePostDialogContentQuery",
             {
                 "feedbackSource": 2,
                 "feedLocation": "PERMALINK",
@@ -206,7 +198,7 @@ class Api:
 
     def CommentsListComponentsPaginationQuery(self, feedback_id: str, cursor: str | None) -> list[JSON]:
         return self.fetch(
-            DOC_IDS["CommentsListComponentsPaginationQuery"],
+            "CommentsListComponentsPaginationQuery",
             {
                 "commentsAfterCount": -1,
                 "commentsAfterCursor": cursor,
@@ -223,7 +215,7 @@ class Api:
 
     def CommentListComponentsRootQuery(self, feedback_id: str, sort: str, focus_id: str | None = None) -> list[JSON]:
         return self.fetch(
-            DOC_IDS["CommentListComponentsRootQuery"],
+            "CommentListComponentsRootQuery",
             {
                 "commentsIntentToken": sort,
                 "feedLocation": "PERMALINK",
@@ -237,7 +229,7 @@ class Api:
 
     def Depth1CommentsListPaginationQuery(self, feedback_id: str, expansion_token: str, cursor: str | None) -> list[JSON]:
         return self.fetch(
-            DOC_IDS["Depth1CommentsListPaginationQuery"],
+            "Depth1CommentsListPaginationQuery",
             {
                 "clientKey": None,
                 "expansionToken": expansion_token,
@@ -255,7 +247,7 @@ class Api:
 
     def FBReelsRootWithEntrypointQuery(self, reel_id: str) -> list[JSON]:
         return self.fetch(
-            DOC_IDS["FBReelsRootWithEntrypointQuery"],
+            "FBReelsRootWithEntrypointQuery",
             {
                 "count": 0,
                 "group_id_list": [],
@@ -276,7 +268,7 @@ class Api:
 
     def CometGroupRootQuery(self, group_id: str) -> list[JSON]:
         return self.fetch(
-            DOC_IDS["CometGroupRootQuery"],
+            "CometGroupRootQuery",
             {
                 "groupID": group_id,
                 "inviteShortLinkKey": None,
@@ -287,7 +279,7 @@ class Api:
 
     def GroupsCometDiscussionLayoutRootQuery(self, group_id: str) -> list[JSON]:
         return self.fetch(
-            DOC_IDS["GroupsCometDiscussionLayoutRootQuery"],
+            "GroupsCometDiscussionLayoutRootQuery",
             {
                 "groupID": group_id,
                 "scale": 1,
@@ -296,7 +288,7 @@ class Api:
 
     def CometGroupDiscussionRootSuccessQuery(self, group_id: str) -> list[JSON]:
         return self.fetch(
-            DOC_IDS["CometGroupDiscussionRootSuccessQuery"],
+            "CometGroupDiscussionRootSuccessQuery",
             {
                 "autoOpenChat": False,
                 "creative_provider_id": None,
@@ -324,7 +316,7 @@ class Api:
 
     def GroupsCometFeedRegularStoriesPaginationQuery(self, group_id: str, cursor: str | None) -> list[JSON]:
         return self.fetch(
-            DOC_IDS["GroupsCometFeedRegularStoriesPaginationQuery"],
+            "GroupsCometFeedRegularStoriesPaginationQuery",
             {
                 "count": 3,
                 "cursor": cursor,
@@ -344,7 +336,7 @@ class Api:
 
     def CometPhotoAlbumQuery(self, token: str) -> list[JSON]:
         return self.fetch(
-            DOC_IDS["CometPhotoAlbumQuery"],
+            "CometPhotoAlbumQuery",
             {
                 "feedbackSource": 65,
                 "feedLocation": "PERMALINK",
@@ -359,7 +351,7 @@ class Api:
 
     def CometAlbumPhotoCollagePaginationQuery(self, album_id: str, cursor: str | None) -> list[JSON]:
         return self.fetch(
-            DOC_IDS["CometAlbumPhotoCollagePaginationQuery"],
+            "CometAlbumPhotoCollagePaginationQuery",
             {
                 "count": 14,
                 "cursor": cursor,
@@ -371,7 +363,7 @@ class Api:
 
     def CometPhotoRootContentQuery(self, node_id: str) -> list[JSON]:
         return self.fetch(
-            DOC_IDS["CometPhotoRootContentQuery"],
+            "CometPhotoRootContentQuery",
             {
                 "feedbackSource": 65,
                 "feedLocation": "COMET_MEDIA_VIEWER",
@@ -394,7 +386,7 @@ class Api:
         filters: list[str] | None = None,
     ) -> list[JSON]:
         return self.fetch(
-            DOC_IDS["SearchCometResultsPaginatedResultsQuery"],
+            "SearchCometResultsPaginatedResultsQuery",
             {
                 "allow_streaming": False,
                 "args": {
