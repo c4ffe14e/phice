@@ -4,6 +4,7 @@
     border: 2px solid var(--accent);
     border-radius: 8px;
     padding: 8px;
+    overflow-y: auto;
 }
 
 #error_message > h1 {
