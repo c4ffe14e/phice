@@ -24,7 +24,11 @@ with (DATA_PATH / "extra_variables.json").open("r") as f:
 class Api:
     def __init__(self, *, proxy: str | None = None) -> None:
         self.lsd: str = "_"
-        self.client: httpx.Client = http_client(
+        self.client: httpx.Client = http_client(base_url="https://www.facebook.com", proxy=proxy)
+
+    def fetch(self, name: str, variables: JSON, *, fuck_facebook: bool = False) -> list[JSON]:
+        response: httpx.Response = self.client.post(
+            "/api/graphql/",
             headers={
                 "Accept": "*/*",
                 "X-FB-LSD": self.lsd,
@@ -32,13 +36,6 @@ class Api:
                 "Sec-Fetch-Dest": "empty",
                 "Sec-Fetch-Mode": "cors",
             },
-            base_url="https://www.facebook.com",
-            proxy=proxy,
-        )
-
-    def fetch(self, name: str, variables: JSON, *, fuck_facebook: bool = False) -> list[JSON]:
-        response: httpx.Response = self.client.post(
-            "/api/graphql/",
             data={
                 "__a": "1",
                 "__comet_req": "15",
@@ -56,13 +53,20 @@ class Api:
             if errors[0].get("code") == 1675004:
                 raise RateLimitError(f"{name}: Rate limit")
             if not (fuck_facebook and "field_exception" in errors[0]["message"]):
-                raise ResponseError(f"{name}: " + ", ".join(i["message"] for i in errors))
+                raise ResponseError(f"{name}: {', '.join(i['message'] for i in errors)}")
 
         return result
 
     def route(self, url: str, *, redirect: bool = False) -> tuple[JSON | None, str | None]:
         response: httpx.Response = self.client.post(
             "/ajax/navigation/",
+            headers={
+                "Accept": "*/*",
+                "X-FB-LSD": self.lsd,
+                "Origin": "https://www.facebook.com",
+                "Sec-Fetch-Dest": "empty",
+                "Sec-Fetch-Mode": "cors",
+            },
             data={
                 "route_url": url,
                 "__a": "1",
@@ -86,15 +90,10 @@ class Api:
 
     # EXPERIMENTAL
     def from_html(self, url: str) -> dict[str, list[JSON]]:
-        response: httpx.Response = self.client.get(
-            url,
-            follow_redirects=True,
-        )
+        response: httpx.Response = self.client.get(url, follow_redirects=True)
         if response.status_code != 200:
             raise ResponseError(f"Facebook returned {response.status_code}")
-
         soup: BeautifulSoup = BeautifulSoup(response.text, "lxml")
-
         data_script_tags = soup.find_all(
             lambda t: t.name == "script" and t.get("type") == "application/json" and not t.has_attr("id")
         )
@@ -113,7 +112,7 @@ class Api:
 
         lsd_tag = soup.find("script", id="__eqmc", type="application/json")
         if isinstance(lsd_tag, Tag) and lsd_tag.string is not None:
-            self.lsd = orjson.loads(str(lsd_tag.string)).get("l", "_")
+            self.lsd = orjson.loads(lsd_tag.string.encode()).get("l", "_")
 
         return dict(ret)
 
