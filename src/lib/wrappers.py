@@ -18,7 +18,7 @@ def http_client(
         "Sec-Fetch-Mode": "navigate",
         "Sec-Fetch-Site": "same-origin",
         "TE": "trailers",
-    }.copy()
+    }
     if headers is not None:
         client_cookies.update(headers)
 
