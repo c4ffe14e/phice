@@ -8,7 +8,7 @@ def http_client(
     follow_redirects: bool = False,
     base_url: str = "",
 ) -> httpx.Client:
-    client_cookies: dict[str, str] = {
+    client_headers: dict[str, str] = {
         "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:141.0) Gecko/20100101 Firefox/141.0",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         "Accept-Language": "en-US,en;q=0.5",
@@ -20,10 +20,10 @@ def http_client(
         "TE": "trailers",
     }
     if headers is not None:
-        client_cookies.update(headers)
+        client_headers.update(headers)
 
     return httpx.Client(
-        headers=client_cookies,
+        headers=client_headers,
         proxy=proxy,
         timeout=15,
         http2=True,
