@@ -251,6 +251,7 @@ class GetGroup:
         if not route or route_type != "group":
             raise NotFound
         group_id: str = route["rootView"]["props"]["groupID"]
+
         header: JSON = api.CometGroupRootQuery(group_id)[0]["data"]["group"]["profile_header_renderer"]["group"]
         side_panel: JSON = api.GroupsCometDiscussionLayoutRootQuery(group_id)[-1]["data"]["comet_discussion_tab_cards"][0]["group"]
         posts_feed: list[JSON] = api.CometGroupDiscussionRootSuccessQuery(group_id)
