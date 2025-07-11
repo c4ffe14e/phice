@@ -26,7 +26,7 @@ class Api:
         self.lsd: str = "_"
         self.client: httpx.Client = http_client(base_url="https://www.facebook.com", proxy=proxy)
 
-    def fetch(self, name: str, variables: JSON, *, fuck_facebook: bool = False) -> list[JSON]:
+    def fetch(self, name: str, variables: JSON) -> list[JSON]:
         response: httpx.Response = self.client.post(
             "/api/graphql/",
             headers={
@@ -52,8 +52,7 @@ class Api:
         if errors:
             if errors[0].get("code") == 1675004:
                 raise RateLimitError(f"{name}: Rate limit")
-            if not (fuck_facebook and "field_exception" in errors[0]["message"]):
-                raise ResponseError(f"{name}: {', '.join(i['message'] for i in errors)}")
+            raise ResponseError(f"{name}: {', '.join(i['message'] for i in errors)}")
 
         return result
 
@@ -309,7 +308,6 @@ class Api:
                 "threadID": "",
                 "useDefaultActor": False,
             },
-            fuck_facebook=True,
         )
 
     def GroupsCometFeedRegularStoriesPaginationQuery(self, group_id: str, cursor: str | None) -> list[JSON]:
