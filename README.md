@@ -43,7 +43,6 @@ docker-compose up -d
 ### Dependencies:
 * python >= 3.13
 * uv
-* a WSGI server (ex: gunicorn)
 
 ```sh
 uv sync
