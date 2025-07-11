@@ -211,12 +211,13 @@ def parse_comment(node: JSON) -> Comment:
                     url=video_url,
                 )
             case "AnimatedImageShare":
-                comment.attachment = AnimatedImage(
-                    url=(
-                        media["videoDeliveryLegacyFields"]["browser_native_hd_url"]
-                        or media["videoDeliveryLegacyFields"]["browser_native_sd_url"]
-                    ),
-                )
+                if vid := media.get("videoDeliveryLegacyFields"):
+                    comment.attachment = AnimatedImage(url=vid["browser_native_hd_url"] or vid["browser_native_sd_url"])
+                else:
+                    comment.attachment = Photo(
+                        url=media["sticker_image"]["uri"],
+                        id=media["id"],
+                    )
             case "Sticker" | "StickerAvatar":
                 comment.attachment = Photo(
                     url=media["image"]["uri"],
