@@ -215,7 +215,10 @@ class GetPost:
         video: JSON | None = self.__api.FBReelsRootWithEntrypointQuery(str(reel_id))[0]["data"]["video"]
         if not video:
             raise NotFound
-        self.id = video["creation_story"]["id"]
+        post_id: str = video["creation_story"]["post_id"]
+        owner_id: str = video["creation_story"]["video"]["owner"]["id"]
+
+        self.id = base64s("S:_I" + owner_id + ":" + post_id + ":" + post_id)
         self.__fetch()
 
     def from_group_post(self, group_token: str, token: str) -> None:
