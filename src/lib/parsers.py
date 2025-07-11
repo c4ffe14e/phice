@@ -16,7 +16,7 @@ class Photo:
     url: str
     id: str | None = None
     owner_id: str | None = None
-    alt_text: str | None = None
+    alt_text: str = ""
 
 
 @dataclass
