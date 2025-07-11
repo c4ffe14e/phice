@@ -11,7 +11,7 @@ class Unsupported:
     pass
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Photo:
     url: str
     id: str | None = None
@@ -19,7 +19,7 @@ class Photo:
     alt_text: str = ""
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Video:
     id: str
     url: str | None
@@ -27,12 +27,12 @@ class Video:
     thumbnail_url: str | None = None
 
 
-@dataclass
+@dataclass(kw_only=True)
 class AnimatedImage:
     url: str
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Event:
     name: str
     description: str
@@ -44,14 +44,14 @@ class Unavailable:
     pass
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Poll:
     text: str
     total: int
     options: list[tuple[str, int, int]] = field(default_factory=list)
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Feed:
     id: str
     token: str
@@ -69,7 +69,7 @@ class Feed:
     info: list[dict[str, str | None]] = field(default_factory=list)
 
 
-@dataclass
+@dataclass(kw_only=True)
 class User:
     id: str
     username: str | None
@@ -79,14 +79,14 @@ class User:
     description: str = ""
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Group:
     id: str
     username: str
     name: str
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Post:
     id: str
     post_id: str
