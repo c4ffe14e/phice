@@ -11,14 +11,16 @@ from ..lib.wrappers import http_client
 bp: Blueprint = Blueprint("cdn", __name__)
 
 
-@bp.route("/cdn/<path:path>")
+@bp.route("/cdn_external/<path:path>", endpoint="cdn_external")
+@bp.route("/cdn/<path:path>", endpoint="cdn")
 def cdn(path: str) -> Response:
+    cdn_url: str = "https://scontent.xx.fbcdn.net" if request.endpoint == "cdn.cdn" else "https://external.fmji4-1.fna.fbcdn.net"
     cdn_headers: dict[str, str] = {}
     if rrange := request.headers.get("range"):
         cdn_headers["range"] = rrange
 
     client: httpx.Client = http_client(headers=cdn_headers, proxy=get_proxy())
-    cdn_request: httpx.Request = client.build_request("GET", f"https://scontent.xx.fbcdn.net/{path}", params=request.query_string)
+    cdn_request: httpx.Request = client.build_request("GET", f"{cdn_url}/{path}", params=request.query_string)
     cdn_response: httpx.Response = client.send(cdn_request, stream=True)
 
     headers: dict[str, str] = {

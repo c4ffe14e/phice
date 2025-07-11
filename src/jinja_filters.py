@@ -1,10 +1,27 @@
 import re
 from collections.abc import Callable
 from datetime import UTC, datetime
+from urllib.parse import ParseResult, urlparse
 
 from flask import url_for
 
 from .flask_utils import GetSetting
+
+
+def _proxy_sub(m: re.Match[str]) -> str:
+    url: ParseResult = urlparse(m.group(0))
+
+    endpoint: str = "cdn.cdn"
+    if url.hostname and url.hostname.startswith("external."):
+        endpoint = "cdn.cdn_external"
+
+    return f"{url_for(endpoint, path=url.path[1:], _external=True)}?{url.query}"
+
+
+def proxy(s: str) -> str:
+    if GetSetting("proxy").as_bool():
+        return re.sub(r"https?://[^/]*.fbcdn.net/[^ ]*", _proxy_sub, s)
+    return s
 
 
 def format_time(timestamp: str | float) -> str:
@@ -43,12 +60,6 @@ def format_time_rfc822(timestamp: str | float) -> str:
 
 def format_number(number: int) -> str:
     return f"{number:,}"
-
-
-def proxy(s: str) -> str:
-    if GetSetting("proxy").as_bool():
-        return re.sub(r"https?://[^/]*.fbcdn.net/([^ ]*)", rf"{url_for('cdn.cdn', path='', _external=True)}\1", s)
-    return s
 
 
 FILTERS: dict[str, Callable[..., str]] = {
