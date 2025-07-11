@@ -13,6 +13,7 @@ dependencies = [
     "orjson>=3.10.18",
     "beautifulsoup4>=4.13.4",
     "lxml>=5.4.0",
+    "gunicorn>=23.0.0",
 ]
 
 [tool.ruff]

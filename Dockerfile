@@ -3,7 +3,6 @@ FROM ghcr.io/astral-sh/uv:python3.13-alpine
 WORKDIR /src/phice
 COPY pyproject.toml .
 RUN uv sync
-RUN uv pip install gunicorn
 
 COPY app.py .
 COPY src ./src
