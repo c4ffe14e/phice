@@ -73,6 +73,7 @@ class Api:
                 "lsd": self.lsd,
             },
         )
+
         result: JSON = orjson.loads(response.text[9:])["payload"].get("payload", {}).get("result", {})
         if not result:
             return None, None
@@ -82,7 +83,11 @@ class Api:
             else:
                 return None, None
 
-        return result["exports"], result["exports"]["entityKeyConfig"]["entity_type"]["value"]
+        route_type: str | None = None
+        if entity_key_config := result["exports"].get("entityKeyConfig"):
+            route_type = entity_key_config["entity_type"]["value"]
+
+        return result["exports"], route_type
 
     def close(self) -> None:
         self.client.close()
