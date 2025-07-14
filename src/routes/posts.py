@@ -6,7 +6,7 @@ from flask import Blueprint, abort, redirect, render_template, request
 from werkzeug import Response
 
 from ..flask_utils import get_proxy
-from ..lib.exceptions import NotFound, ParsingError, RateLimitError, ResponseError
+from ..lib.exceptions import NotFound, ParsingError, ResponseError
 from ..lib.extractor import GetPost
 from ..lib.utils import nohostname
 from ..lib.wrappers import http_client
@@ -34,7 +34,7 @@ def posts(author: str = "", token: str = "") -> str:  # pyright: ignore[reportUn
         )
     except NotFound:
         abort(404, "Post not found")
-    except (ParsingError, ResponseError, RateLimitError) as e:
+    except (ParsingError, ResponseError) as e:
         abort(500, ", ".join(e.args))
 
     return render_template(

@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 import orjson
 from bs4 import BeautifulSoup, Tag
 
-from .exceptions import RateLimitError, ResponseError
+from .exceptions import ResponseError
 from .wrappers import http_client
 
 type JSON = dict[str, Any]
@@ -47,12 +47,10 @@ class Api:
         if response.status_code != 200:
             raise ResponseError(f"Facebook returned {response.status_code}")
         result: list[JSON] = [orjson.loads(i) for i in response.text.splitlines()]
-        errors: list[JSON] | None = result[0].get("errors")
 
+        errors: list[JSON] | None = result[0].get("errors")
         if errors:
-            if errors[0].get("code") == 1675004:
-                raise RateLimitError(f"{name}: Rate limit")
-            raise ResponseError(f"{name}: {', '.join(i['message'] for i in errors)}")
+            raise ResponseError(f"{name}: {errors[0]['message']}", code=errors[0].get("code"))
 
         return result
 
