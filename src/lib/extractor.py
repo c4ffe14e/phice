@@ -1,4 +1,4 @@
-from contextlib import suppress
+from collections import defaultdict
 from urllib.parse import parse_qs, urlparse
 
 from .api import JSON, Api
@@ -6,17 +6,31 @@ from .exceptions import InvalidResponse, NotFound
 from .parsers import Comment, Feed, Photo, Post, User, Video, parse_comment, parse_post, parse_search
 from .utils import base64s, base64s_decode, urlbasename
 
+COMMENT_FILTERS: defaultdict[str, str] = defaultdict(
+    lambda: "RANKED_FILTERED_INTENT_V1",
+    {
+        "all": "RANKED_UNFILTERED_CHRONOLOGICAL_REPLIES_INTENT_V1",
+        "newest": "RECENT_ACTIVITY_INTENT_V1",
+        "filtered": "RANKED_FILTERED_INTENT_V1",
+    },
+)
+PROFILE_PAGING: int = 3
+COMMENT_PAGING: int = 2
+GROUP_PAGING: int = 4
+ALBUM_PAGING: int = 3
+SEARCH_PAGING: int = 3
+
 
 class GetProfile:
     def __init__(
         self,
         username: str,
-        start_cursor: str | None,
+        cursor: str | None = None,
         *,
         proxy: str | None = None,
     ) -> None:
         api: Api = Api(proxy=proxy)
-        route, route_type = api.route(f"/{username}", redirect=True)
+        route, route_type = api.route(username)
         if not route or route_type != "profile":
             raise NotFound
         user_id: str = route["rootView"]["props"]["userID"]
@@ -25,8 +39,8 @@ class GetProfile:
         side: JSON = api.ProfilePlusCometLoggedOutRootQuery(user_id)[-1]["data"]["profile_tile_sections"]["edges"][0]["node"]
         posts_feed: list[JSON] = api.ProfileCometTimelineFeedQuery(user_id)
 
-        self.cursor: str | None = start_cursor
-        self.has_next: bool = bool(start_cursor)
+        self.cursor: str | None = cursor
+        self.has_next: bool = bool(cursor)
         self.posts: list[Post] = []
         self.feed: Feed = Feed(
             id=user_id,
@@ -83,7 +97,7 @@ class GetProfile:
             else:
                 raise InvalidResponse
         if self.has_next:
-            for _ in range(3):
+            for _ in range(PROFILE_PAGING):
                 response: list[JSON] = api.ProfileCometTimelineFeedRefetchQuery(user_id, self.cursor)
                 rest: list[JSON] = [i for i in response[1:] if "ProfileCometTimelineFeed_user" in i.get("label", "")]
 
@@ -101,38 +115,60 @@ class GetProfile:
 class GetPost:
     def __init__(
         self,
-        start_cursor: str | None,
+        token: str,
+        cursor: str | None = None,
         focus: str | None = None,
-        sort: str | None = None,
+        sort: str | None = "filtered",
         *,
         proxy: str | None = None,
     ) -> None:
-        self.__api: Api = Api(proxy=proxy)
-
-        self.id: str | None = None
-        self.cursor: str | None = start_cursor
-        self.has_next: bool = bool(start_cursor)
-        self.focus: str | None = focus
-        self.sort: str = {
-            "all": "RANKED_UNFILTERED_CHRONOLOGICAL_REPLIES_INTENT_V1",
-            "newest": "RECENT_ACTIVITY_INTENT_V1",
-        }.get(str(sort), "RANKED_FILTERED_INTENT_V1")
-        self.post: Post | None = None
-        self.comments: list[Comment] = []
-
-    def __fetch(self) -> None:
-        if not self.id:
+        api: Api = Api(proxy=proxy)
+        route, route_type = api.route(token)
+        if not route:
             raise NotFound
-        post_payload: JSON = self.__api.CometSinglePostDialogContentQuery(self.id, self.focus)[0]["data"]["node"]
+        post_id: str | None = None
+        match route_type:
+            case "post" | "group_post":
+                post_id = route["rootView"]["props"]["storyID"]
+            case "videos":
+                props: JSON = route["rootView"]["props"]
+                page_id: str = props["pageID"]
+                video_id: str = props["v"]
+                if page_id and video_id:
+                    post_id = base64s(f"S:_I{page_id}:{video_id}:{video_id}")
+            case "reel":
+                reel: JSON | None = api.FBReelsRootWithEntrypointQuery(token)[0]["data"]["video"]
+                if reel:
+                    reel_owner_id: str = reel["creation_story"]["video"]["owner"]["id"]
+                    reel_id: str = reel["creation_story"]["post_id"]
+                    post_id = base64s(f"S:_I{reel_owner_id}:{reel_id}:{reel_id}")
+            case "photos":
+                photo: JSON | None = api.CometPhotoRootContentQuery(token)[0]["data"]["currMedia"]
+                if photo:
+                    user_id: str = base64s_decode(photo["container_story"]["id"]).split(":")[1]
+                    post_id = base64s(f"S:{user_id}:VK:{photo['id']}")
+            case _:
+                raise NotFound
+        if post_id is None:
+            raise NotFound
 
-        self.post = parse_post(post_payload)
+        sort_type: str | None = None if sort is None else COMMENT_FILTERS[sort]
+        post_payload: JSON = api.CometSinglePostDialogContentQuery(
+            post_id,
+            sort_type,
+        )[0]["data"]["node"]
 
+        self.cursor: str | None = cursor
+        self.has_next: bool = bool(cursor)
+        self.focus: str | None = focus
+        self.post: Post = parse_post(post_payload)
+        self.comments: list[Comment] = []
         if self.post.feedback_id is not None:
             comments_payload: JSON
-            if self.sort:
-                comments_payload = self.__api.CommentListComponentsRootQuery(
+            if sort_type:
+                comments_payload = api.CommentListComponentsRootQuery(
                     self.post.feedback_id,
-                    self.sort,
+                    sort_type,
                     self.focus,
                 )[0]["data"]["node"]["comment_rendering_instance_for_feed_location"]["comments"]
             else:
@@ -153,8 +189,8 @@ class GetPost:
                     self.cursor = replies["page_info"]["end_cursor"]
                     self.has_next = replies["page_info"]["has_next_page"]
                 if self.has_next:
-                    for _ in range(2):
-                        next_replies: JSON = self.__api.Depth1CommentsListPaginationQuery(
+                    for _ in range(COMMENT_PAGING):
+                        next_replies: JSON = api.Depth1CommentsListPaginationQuery(
                             main_comment["feedback"]["id"],
                             main_comment["feedback"]["expansion_info"]["expansion_token"],
                             self.cursor,
@@ -171,8 +207,8 @@ class GetPost:
                     self.cursor = comments_payload["page_info"]["end_cursor"]
                     self.has_next = comments_payload["page_info"]["has_next_page"]
                 if self.has_next:
-                    for _ in range(2):
-                        next_comments: JSON = self.__api.CommentsListComponentsPaginationQuery(
+                    for _ in range(COMMENT_PAGING):
+                        next_comments: JSON = api.CommentsListComponentsPaginationQuery(
                             self.post.feedback_id,
                             self.cursor,
                         )[0]["data"]["node"]["comment_rendering_instance_for_feed_location"]["comments"]
@@ -183,74 +219,19 @@ class GetPost:
                         if not self.has_next:
                             break
 
-        self.__api.close()
-
-    def from_post(self, username: str | None, token: str | None) -> None:
-        if not username or not token:
-            raise NotFound
-        route, route_type = self.__api.route(f"/{username}/posts/{token}")
-        if not route or route_type != "post":
-            raise NotFound
-        self.id = route["rootView"]["props"]["storyID"]
-        if not self.id:
-            raise NotFound
-        self.__fetch()
-
-    def from_video(self, username: str, token: str) -> None:
-        route, route_type = self.__api.route(f"/{username}/videos/{token}")
-        if not route or route_type != "videos":
-            raise NotFound
-        props: JSON = route["rootView"]["props"]
-        page_id: str = props["pageID"]
-        post_id: str = props["v"]
-        if not page_id or not post_id:
-            raise NotFound
-        self.id = base64s("S:_I" + page_id + ":" + post_id + ":" + post_id)
-        self.__fetch()
-
-    def from_reel(self, video_id: str) -> None:
-        reel_id: int = 0
-        with suppress(ValueError):
-            reel_id = int(video_id)
-        video: JSON | None = self.__api.FBReelsRootWithEntrypointQuery(str(reel_id))[0]["data"]["video"]
-        if not video:
-            raise NotFound
-        post_id: str = video["creation_story"]["post_id"]
-        owner_id: str = video["creation_story"]["video"]["owner"]["id"]
-
-        self.id = base64s("S:_I" + owner_id + ":" + post_id + ":" + post_id)
-        self.__fetch()
-
-    def from_group_post(self, group_token: str, token: str) -> None:
-        route, route_type = self.__api.route(f"/groups/{group_token}/posts/{token}")
-        if not route or route_type != "group_post":
-            raise NotFound
-        self.id = route["rootView"]["props"]["storyID"]
-        if not self.id:
-            raise NotFound
-        self.__fetch()
-
-    def from_photo(self, node_id: str | None) -> None:
-        if not node_id:
-            raise NotFound
-        photo: JSON | None = self.__api.CometPhotoRootContentQuery(node_id)[0]["data"]["currMedia"]
-        if not photo:
-            raise NotFound
-        user_id: str = base64s_decode(photo["container_story"]["id"]).split(":")[1]
-        self.id = base64s(f"S:{user_id}:VK:{photo['id']}")
-        self.__fetch()
+        api.close()
 
 
 class GetGroup:
     def __init__(
         self,
         token: str,
-        start_cursor: str | None,
+        cursor: str | None = None,
         *,
         proxy: str | None = None,
     ) -> None:
         api: Api = Api(proxy=proxy)
-        route, route_type = api.route(f"/groups/{token}")
+        route, route_type = api.route(f"groups/{token}")
         if not route or route_type != "group":
             raise NotFound
         group_id: str = route["rootView"]["props"]["groupID"]
@@ -259,8 +240,8 @@ class GetGroup:
         side_panel: JSON = api.GroupsCometDiscussionLayoutRootQuery(group_id)[-1]["data"]["comet_discussion_tab_cards"][0]["group"]
         posts_feed: list[JSON] = api.CometGroupDiscussionRootSuccessQuery(group_id)
 
-        self.cursor: str | None = start_cursor
-        self.has_next: bool = bool(start_cursor)
+        self.cursor: str | None = cursor
+        self.has_next: bool = bool(cursor)
         self.posts: list[Post] = []
         self.feed: Feed = Feed(
             id=group_id,
@@ -295,7 +276,7 @@ class GetGroup:
             else:
                 raise InvalidResponse
         if self.has_next:
-            for _ in range(4):
+            for _ in range(GROUP_PAGING):
                 response: list[JSON] = api.GroupsCometFeedRegularStoriesPaginationQuery(group_id, self.cursor)
                 rest: list[JSON] = [
                     i for i in response[1:] if "GroupsCometFeedRegularStories_group_group_feed" in i.get("label", "")
@@ -316,7 +297,7 @@ class GetAlbum:
     def __init__(
         self,
         token: str | None,
-        start_cursor: str | None,
+        cursor: str | None = None,
         *,
         proxy: str | None = None,
     ) -> None:
@@ -327,8 +308,8 @@ class GetAlbum:
         if not album:
             raise NotFound
 
-        self.cursor: str | None = start_cursor
-        self.has_next: bool = bool(start_cursor)
+        self.cursor: str | None = cursor
+        self.has_next: bool = bool(cursor)
         self.items: list[Photo | Video] = []
         self.title: str = album["title"]["text"]
 
@@ -339,7 +320,7 @@ class GetAlbum:
             self.cursor = album["media"]["page_info"]["end_cursor"]
             self.has_next = album["media"]["page_info"]["has_next_page"]
         if self.has_next:
-            for _ in range(3):
+            for _ in range(ALBUM_PAGING):
                 next_items: JSON = api.CometAlbumPhotoCollagePaginationQuery(album["id"], self.cursor)[0]["data"]["node"]["media"]
 
                 items.extend(next_items["edges"])
@@ -378,15 +359,16 @@ class Search:
         self,
         query: str,
         category: str | None,
-        start_cursor: str | None,
+        cursor: str | None = None,
         *,
         proxy: str | None = None,
     ) -> None:
-        self.cursor: str | None = start_cursor
-        self.has_next: bool = bool(start_cursor)
-        self.results: list[User | Post] = []
         if not query:
             return
+
+        self.cursor: str | None = cursor
+        self.has_next: bool = bool(cursor)
+        self.results: list[User | Post] = []
 
         api: Api = Api(proxy=proxy)
         filters: list[str] = []
@@ -402,7 +384,7 @@ class Search:
             case _:
                 search_type = "PAGES_TAB"
 
-        for _ in range(3):
+        for _ in range(SEARCH_PAGING):
             results_payload: JSON = api.SearchCometResultsPaginatedResultsQuery(
                 query,
                 search_type,

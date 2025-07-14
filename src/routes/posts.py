@@ -16,41 +16,26 @@ bp: Blueprint = Blueprint("posts", __name__)
 
 @bp.route("/<string:author>/posts/<string:token>", endpoint="posts")
 @bp.route("/<string:author>/videos/<string:token>", endpoint="videos")
-@bp.route("/reel/<string:token>", defaults={"author": ""}, endpoint="reel")
+@bp.route("/reel/<string:token>", endpoint="reel")
 @bp.route("/groups/<string:author>/permalink/<string:token>", endpoint="groups_posts")
 @bp.route("/groups/<string:author>/posts/<string:token>", endpoint="groups_posts")
-@bp.route("/photo.php", defaults={"author": "", "token": ""}, endpoint="photo")
-@bp.route("/photo", defaults={"author": "", "token": ""}, endpoint="photo")
-@bp.route("/permalink.php", defaults={"author": "", "token": ""}, endpoint="permalink")
-def posts(author: str, token: str) -> str:
-    post = GetPost(
-        request.args.get("cursor"),
-        request.args.get("comment_id"),
-        request.args.get("sort"),
-        proxy=get_proxy(),
-    )
-
+@bp.route("/photo.php", endpoint="photo")
+@bp.route("/photo", endpoint="photo")
+@bp.route("/permalink.php", endpoint="permalink")
+@bp.route("/story.php", endpoint="story")
+def posts(author: str = "", token: str = "") -> str:  # pyright: ignore[reportUnusedParameter] # noqa: ARG001
     try:
-        match request.endpoint:
-            case "posts.videos":
-                post.from_video(author, token)
-            case "posts.reel":
-                post.from_reel(token)
-            case "posts.groups_posts":
-                post.from_group_post(author, token)
-            case "posts.photo":
-                post.from_photo(request.args.get("fbid"))
-            case "posts.permalink":
-                post.from_post(request.args.get("id"), request.args.get("story_fbid"))
-            case _:
-                post.from_post(author, token)
+        post = GetPost(
+            request.args.get("fbid", request.args.get("story_fbid", token)),
+            request.args.get("cursor"),
+            request.args.get("comment_id"),
+            request.args.get("sort"),
+            proxy=get_proxy(),
+        )
     except NotFound:
         abort(404, "Post not found")
     except (InvalidResponse, ResponseError, RateLimitError) as e:
         abort(500, ", ".join(e.args))
-
-    if post.post is None:
-        abort(500)
 
     return render_template(
         "post.html.jinja",
