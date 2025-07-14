@@ -360,4 +360,4 @@ def parse_album_item(node: JSON) -> Photo | Video:
                 owner_id=node["owner"]["id"],
             )
         case _:
-            raise ParsingError
+            raise ParsingError(f"Unknown album item type {node['__typename']}")

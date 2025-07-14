@@ -3,7 +3,7 @@ from urllib.parse import parse_qs, urlparse
 
 from .api import JSON, Api
 from .datatypes import Comment, Feed, Photo, Post, User, Video
-from .exceptions import InvalidResponse, NotFound
+from .exceptions import NotFound, ParsingError
 from .parsers import parse_album_item, parse_comment, parse_post, parse_search
 from .utils import base64s, base64s_decode, urlbasename
 
@@ -96,7 +96,7 @@ class GetProfile:
                     self.has_next = page_info["has_next_page"]
                     break
             else:
-                raise InvalidResponse
+                raise ParsingError("Couldn't find page_info")
         if self.has_next:
             for _ in range(PROFILE_PAGING):
                 response: list[JSON] = api.ProfileCometTimelineFeedRefetchQuery(user_id, self.cursor)
@@ -275,7 +275,7 @@ class GetGroup:
                     self.has_next = page_info["has_next_page"]
                     break
             else:
-                raise InvalidResponse
+                raise ParsingError("Couldn't find page_info")
         if self.has_next:
             for _ in range(GROUP_PAGING):
                 response: list[JSON] = api.GroupsCometFeedRegularStoriesPaginationQuery(group_id, self.cursor)

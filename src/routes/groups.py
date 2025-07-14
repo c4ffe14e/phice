@@ -1,7 +1,7 @@
 from flask import Blueprint, abort, current_app, render_template, request
 
 from ..flask_utils import get_proxy
-from ..lib.exceptions import InvalidResponse, NotFound, RateLimitError, ResponseError
+from ..lib.exceptions import NotFound, ParsingError, RateLimitError, ResponseError
 from ..lib.extractor import GetGroup
 
 bp: Blueprint = Blueprint("groups", __name__)
@@ -13,7 +13,7 @@ def groups(token: str) -> str | tuple[str, dict[str, str]]:
         group = GetGroup(token, request.args.get("cursor"), proxy=get_proxy())
     except NotFound:
         abort(404, f"{token} not found")
-    except (InvalidResponse, ResponseError, RateLimitError) as e:
+    except (ParsingError, ResponseError, RateLimitError) as e:
         abort(500, ", ".join(e.args))
 
     if request.args.get("rss"):
