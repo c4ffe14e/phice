@@ -7,8 +7,12 @@
 {% endblock head %}
 
 {% block content %}
-    <div id="album">
-        {% for i in items %}
+    <div id="album_header">
+        <h1>{{ album.title }}</h1>
+        <p>{{ album.description | urlize(target="_blank") }}</p>
+    </div>
+    <div id="album_grid">
+        {% for i in album.items %}
             <div class="album_item">
                 {% if type(i) == "Photo" %}
                     <a href="{{ url_for('posts.photo', fbid=i.id) }}">

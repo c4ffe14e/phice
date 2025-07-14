@@ -1,4 +1,10 @@
-#album {
+#album_header {
+    background-color: var(--background2);
+    border-radius: 8px;
+    padding: 8px;
+}
+
+#album_grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     grid-gap: 4px;
