@@ -1,7 +1,7 @@
 from flask import Blueprint, abort, render_template, request
 
 from ..flask_utils import get_proxy
-from ..lib.exceptions import InvalidResponse, RateLimitError, ResponseError
+from ..lib.exceptions import ParsingError, RateLimitError, ResponseError
 from ..lib.extractor import Search
 
 bp: Blueprint = Blueprint("search", __name__)
@@ -20,7 +20,7 @@ def search() -> str:
             request.args.get("cursor"),
             proxy=get_proxy(),
         )
-    except (InvalidResponse, ResponseError, RateLimitError) as e:
+    except (ParsingError, ResponseError, RateLimitError) as e:
         abort(500, ", ".join(e.args))
 
     return render_template(

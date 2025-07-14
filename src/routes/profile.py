@@ -1,7 +1,7 @@
 from flask import Blueprint, abort, current_app, render_template, request
 
 from ..flask_utils import get_proxy
-from ..lib.exceptions import InvalidResponse, NotFound, RateLimitError, ResponseError
+from ..lib.exceptions import NotFound, ParsingError, RateLimitError, ResponseError
 from ..lib.extractor import GetProfile
 
 bp: Blueprint = Blueprint("profile", __name__)
@@ -17,7 +17,7 @@ def profile(username: str = "", _: str | None = None) -> str | tuple[str, dict[s
         profile = GetProfile(token, request.args.get("cursor"), proxy=get_proxy())
     except NotFound:
         abort(404, f"{username} not found")
-    except (InvalidResponse, ResponseError, RateLimitError) as e:
+    except (ParsingError, ResponseError, RateLimitError) as e:
         abort(500, ", ".join(e.args))
 
     if request.args.get("rss"):
