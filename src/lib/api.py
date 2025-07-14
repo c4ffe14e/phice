@@ -56,7 +56,7 @@ class Api:
 
         return result
 
-    def route(self, url: str, *, redirect: bool = False) -> tuple[JSON | None, str | None]:
+    def route(self, path: str) -> tuple[JSON | None, str | None]:
         response: httpx.Response = self.client.post(
             "/ajax/navigation/",
             headers={
@@ -67,7 +67,7 @@ class Api:
                 "Sec-Fetch-Mode": "cors",
             },
             data={
-                "route_url": url,
+                "route_url": f"/{path}",
                 "__a": "1",
                 "__comet_req": "15",
                 "lsd": self.lsd,
@@ -78,10 +78,7 @@ class Api:
         if not result:
             return None, None
         if result["type"] == "route_redirect":
-            if redirect:
-                result = result["redirect_result"]
-            else:
-                return None, None
+            result = result["redirect_result"]
 
         route_type: str | None = None
         if entity_key_config := result["exports"].get("entityKeyConfig"):
