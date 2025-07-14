@@ -2,8 +2,9 @@ from collections import defaultdict
 from urllib.parse import parse_qs, urlparse
 
 from .api import JSON, Api
+from .datatypes import Comment, Feed, Photo, Post, User, Video
 from .exceptions import InvalidResponse, NotFound
-from .parsers import Comment, Feed, Photo, Post, User, Video, parse_comment, parse_post, parse_search
+from .parsers import parse_comment, parse_post, parse_search
 from .utils import base64s, base64s_decode, urlbasename
 
 COMMENT_FILTERS: defaultdict[str, str] = defaultdict(
