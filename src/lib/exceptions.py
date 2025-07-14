@@ -12,3 +12,6 @@ class ResponseError(Exception):
 
 class RateLimitError(Exception):
     pass
+
+class ParsingError(Exception):
+    pass

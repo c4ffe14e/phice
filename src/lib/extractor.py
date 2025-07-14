@@ -4,7 +4,7 @@ from urllib.parse import parse_qs, urlparse
 from .api import JSON, Api
 from .datatypes import Comment, Feed, Photo, Post, User, Video
 from .exceptions import InvalidResponse, NotFound
-from .parsers import parse_comment, parse_post, parse_search
+from .parsers import parse_album_item, parse_comment, parse_post, parse_search
 from .utils import base64s, base64s_decode, urlbasename
 
 COMMENT_FILTERS: defaultdict[str, str] = defaultdict(
@@ -297,7 +297,7 @@ class GetGroup:
 class GetAlbum:
     def __init__(
         self,
-        token: str | None,
+        token: str,
         cursor: str | None = None,
         *,
         proxy: str | None = None,
@@ -314,43 +314,19 @@ class GetAlbum:
         self.items: list[Photo | Video] = []
         self.title: str = album["title"]["text"]
 
-        items: list[JSON] = []
-
         if not self.cursor:
-            items.extend(album["media"]["edges"])
+            self.items.extend(parse_album_item(i["node"]) for i in album["media"]["edges"])
             self.cursor = album["media"]["page_info"]["end_cursor"]
             self.has_next = album["media"]["page_info"]["has_next_page"]
         if self.has_next:
             for _ in range(ALBUM_PAGING):
                 next_items: JSON = api.CometAlbumPhotoCollagePaginationQuery(album["id"], self.cursor)[0]["data"]["node"]["media"]
 
-                items.extend(next_items["edges"])
+                self.items.extend(parse_album_item(i["node"]) for i in next_items["edges"])
                 self.cursor = next_items["page_info"]["end_cursor"]
                 self.has_next = next_items["page_info"]["has_next_page"]
                 if not self.has_next:
                     break
-
-        for i in items:
-            match i["node"]["__typename"]:
-                case "Photo":
-                    self.items.append(
-                        Photo(
-                            id=i["node"]["id"],
-                            url=i["node"]["image"]["uri"],
-                            owner_id=i["node"]["owner"]["id"],
-                        )
-                    )
-                case "Video":
-                    self.items.append(
-                        Video(
-                            id=i["node"]["id"],
-                            url=None,
-                            thumbnail_url=i["node"]["image"]["uri"],
-                            owner_id=i["node"]["owner"]["id"],
-                        )
-                    )
-                case _:
-                    pass
 
         api.close()
 
