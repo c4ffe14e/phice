@@ -14,6 +14,7 @@ from .datatypes import (
     User,
     Video,
 )
+from .exceptions import ParsingError
 from .utils import base64s_decode, urlbasename
 
 
@@ -341,3 +342,22 @@ def parse_search(edge: JSON) -> User | Post | None:
         return parse_post(click["story"] if (click := view.get("click_model")) else view["story"])
 
     return None
+
+
+def parse_album_item(node: JSON) -> Photo | Video:
+    match node["__typename"]:
+        case "Photo":
+            return Photo(
+                id=node["id"],
+                url=node["image"]["uri"],
+                owner_id=node["owner"]["id"],
+            )
+        case "Video":
+            return Video(
+                id=node["id"],
+                url=None,
+                thumbnail_url=node["image"]["uri"],
+                owner_id=node["owner"]["id"],
+            )
+        case _:
+            raise ParsingError
