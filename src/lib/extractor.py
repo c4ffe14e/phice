@@ -313,6 +313,10 @@ class GetAlbum:
         self.has_next: bool = bool(cursor)
         self.items: list[Photo | Video] = []
         self.title: str = album["title"]["text"]
+        self.description: str = ""
+
+        if description := album.get("message"):
+            self.description = description["text"]
 
         if not self.cursor:
             self.items.extend(parse_album_item(i["node"]) for i in album["media"]["edges"])
