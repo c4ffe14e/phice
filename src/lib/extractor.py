@@ -33,7 +33,7 @@ class GetProfile:
         api: Api = Api(proxy=proxy)
         route, route_type = api.route(username)
         if not route or route_type != "profile":
-            raise NotFound
+            raise NotFound(f"Profile {username} not found")
         user_id: str = route["rootView"]["props"]["userID"]
 
         header: JSON = api.ProfileCometHeaderQuery(user_id)[0]["data"]["user"]["profile_header_renderer"]["user"]
@@ -125,35 +125,34 @@ class GetPost:
     ) -> None:
         api: Api = Api(proxy=proxy)
         route, route_type = api.route(token)
-        if not route:
-            raise NotFound
         post_id: str | None = None
-        match route_type:
-            case "post" | "group_post":
-                post_id = route["rootView"]["props"]["storyID"]
-            case "videos":
-                props: JSON = route["rootView"]["props"]
-                page_id: str = props["pageID"]
-                video_id: str = props["v"]
-                if page_id and video_id:
-                    post_id = base64s(f"S:_I{page_id}:{video_id}:{video_id}")
-            case "reel":
-                reel: JSON | None = api.FBReelsRootWithEntrypointQuery(token)[0]["data"]["video"]
-                if reel:
-                    reel_owner_id: str = reel["creation_story"]["video"]["owner"]["id"]
-                    reel_id: str = reel["creation_story"]["post_id"]
-                    post_id = base64s(f"S:_I{reel_owner_id}:{reel_id}:{reel_id}")
-            case "photos":
-                photo: JSON | None = api.CometPhotoRootContentQuery(token)[0]["data"]["currMedia"]
-                if photo:
-                    user_id: str = base64s_decode(photo["container_story"]["id"]).split(":")[1]
-                    post_id = base64s(f"S:{user_id}:VK:{photo['id']}")
-            case _:
-                raise NotFound
+        if route and route_type:
+            match route_type:
+                case "post" | "group_post":
+                    post_id = route["rootView"]["props"]["storyID"]
+                case "videos":
+                    props: JSON = route["rootView"]["props"]
+                    page_id: str = props["pageID"]
+                    video_id: str = props["v"]
+                    if page_id and video_id:
+                        post_id = base64s(f"S:_I{page_id}:{video_id}:{video_id}")
+                case "reel":
+                    reel: JSON | None = api.FBReelsRootWithEntrypointQuery(token)[0]["data"]["video"]
+                    if reel:
+                        reel_owner_id: str = reel["creation_story"]["video"]["owner"]["id"]
+                        reel_id: str = reel["creation_story"]["post_id"]
+                        post_id = base64s(f"S:_I{reel_owner_id}:{reel_id}:{reel_id}")
+                case "photos":
+                    photo: JSON | None = api.CometPhotoRootContentQuery(token)[0]["data"]["currMedia"]
+                    if photo:
+                        user_id: str = base64s_decode(photo["container_story"]["id"]).split(":")[1]
+                        post_id = base64s(f"S:{user_id}:VK:{photo['id']}")
+                case _:
+                    pass
         if post_id is None:
-            raise NotFound
-
+            raise NotFound("Post not found")
         sort_type: str | None = None if sort is None else COMMENT_FILTERS[sort]
+
         post_payload: JSON = api.CometSinglePostDialogContentQuery(
             post_id,
             sort_type,
@@ -234,7 +233,7 @@ class GetGroup:
         api: Api = Api(proxy=proxy)
         route, route_type = api.route(f"groups/{token}")
         if not route or route_type != "group":
-            raise NotFound
+            raise NotFound(f"Group {token} not found")
         group_id: str = route["rootView"]["props"]["groupID"]
 
         header: JSON = api.CometGroupRootQuery(group_id)[0]["data"]["group"]["profile_header_renderer"]["group"]
@@ -302,12 +301,10 @@ class GetAlbum:
         *,
         proxy: str | None = None,
     ) -> None:
-        if not token:
-            raise NotFound
         api: Api = Api(proxy=proxy)
         album: JSON | None = api.CometPhotoAlbumQuery(token)[0]["data"]["album"]
         if not album:
-            raise NotFound
+            raise NotFound("Album not found")
 
         self.cursor: str | None = cursor
         self.has_next: bool = bool(cursor)
@@ -344,9 +341,6 @@ class Search:
         *,
         proxy: str | None = None,
     ) -> None:
-        if not query:
-            return
-
         self.cursor: str | None = cursor
         self.has_next: bool = bool(cursor)
         self.results: list[User | Post] = []

@@ -6,7 +6,6 @@ from flask import Blueprint, abort, redirect, render_template, request
 from werkzeug import Response
 
 from ..flask_utils import get_proxy
-from ..lib.exceptions import NotFound, ParsingError, ResponseError
 from ..lib.extractor import GetPost
 from ..lib.utils import nohostname
 from ..lib.wrappers import http_client
@@ -24,18 +23,13 @@ bp: Blueprint = Blueprint("posts", __name__)
 @bp.route("/permalink.php", endpoint="permalink")
 @bp.route("/story.php", endpoint="story")
 def posts(author: str = "", token: str = "") -> str:  # pyright: ignore[reportUnusedParameter] # noqa: ARG001
-    try:
-        post = GetPost(
-            request.args.get("fbid", request.args.get("story_fbid", token)),
-            request.args.get("cursor"),
-            request.args.get("comment_id"),
-            request.args.get("sort"),
-            proxy=get_proxy(),
-        )
-    except NotFound:
-        abort(404, "Post not found")
-    except (ParsingError, ResponseError) as e:
-        abort(500, ", ".join(e.args))
+    post = GetPost(
+        request.args.get("fbid", request.args.get("story_fbid", token)),
+        request.args.get("cursor"),
+        request.args.get("comment_id"),
+        request.args.get("sort"),
+        proxy=get_proxy(),
+    )
 
     return render_template(
         "post.html.jinja",

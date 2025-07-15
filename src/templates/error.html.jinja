@@ -7,8 +7,8 @@
 {% block content %}
     <div id="whole_screen">
         <div id="error_message">
-            <h1>Error {{ e.code }}</h1>
-            <p>{{ e.description }}</p>
+            <h1>Error {{ status_code }}</h1>
+            <p>{{ message if message }}</p>
             {%- if traceback -%}
                 <details id="traceback">
                     <summary>Traceback</summary>
