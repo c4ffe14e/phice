@@ -14,7 +14,7 @@ bp: Blueprint = Blueprint("error_handlers", __name__)
 @bp.app_errorhandler(ResponseError)
 @bp.app_errorhandler(HTTPException)
 def error_handler(e: HTTPException | NotFound | ResponseError) -> tuple[str, int]:
-    status_code: int = 200
+    status_code: int = 500
     message: str | None = None
     tb: str | None = None
 
@@ -25,18 +25,18 @@ def error_handler(e: HTTPException | NotFound | ResponseError) -> tuple[str, int
         case ResponseError():
             status_code = 500
             message = e.message
-        case InternalServerError():
-            if (og := e.original_exception) is not None:
+        case HTTPException():
+            if e.code:
+                status_code = e.code
+            message = e.description
+
+            if isinstance(e, InternalServerError) and (og := e.original_exception) is not None:
                 tb = "".join(format_exception(og))
                 tb = re.sub(
                     r'File "([^"]*)"',
                     lambda m: f'File "{Path(m.group(1)).name}"',
                     tb,
                 )
-        case HTTPException():
-            if e.code:
-                status_code = e.code
-            message = e.description
 
     return render_template(
         "error.html.jinja",
