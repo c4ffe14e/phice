@@ -1,14 +1,7 @@
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    import httpx
-from flask import Blueprint, abort, redirect, render_template, request
-from werkzeug import Response
+from flask import Blueprint, abort, render_template, request
 
 from ..flask_utils import get_proxy
 from ..lib.extractor import GetPost
-from ..lib.utils import nohostname
-from ..lib.wrappers import http_client
 
 bp: Blueprint = Blueprint("posts", __name__)
 
@@ -22,9 +15,23 @@ bp: Blueprint = Blueprint("posts", __name__)
 @bp.route("/photo", endpoint="photo")
 @bp.route("/permalink.php", endpoint="permalink")
 @bp.route("/story.php", endpoint="story")
-def posts(author: str = "", token: str = "") -> str:  # pyright: ignore[reportUnusedParameter] # noqa: ARG001
+@bp.route("/watch", endpoint="watch")
+def posts(author: str | None = None, token: str | None = None) -> str:  # pyright: ignore[reportUnusedParameter] # noqa: ARG001
+    post_id: str | None = None
+    match request.endpoint:
+        case "posts.photo":
+            post_id = request.args.get("fbid")
+        case "posts.permalink" | "posts.story":
+            post_id = request.args.get("story_fbid")
+        case "posts.watch":
+            post_id = request.args.get("v")
+        case _:
+            post_id = token
+    if not post_id:
+        abort(400)
+
     post = GetPost(
-        request.args.get("fbid", request.args.get("story_fbid", token)),
+        post_id,
         request.args.get("cursor"),
         request.args.get("comment_id"),
         request.args.get("sort"),
@@ -39,23 +46,3 @@ def posts(author: str = "", token: str = "") -> str:  # pyright: ignore[reportUn
         has_next=post.has_next,
         title=post.post.text[:58],
     )
-
-
-@bp.route("/watch")
-def watch() -> Response:
-    v: str | None = request.args.get("v")
-    if not v:
-        abort(400)
-
-    with http_client(proxy=get_proxy()) as client:
-        r: httpx.Response = client.get(
-            "https://www.facebook.com/watch",
-            params={"v": v},
-            follow_redirects=False,
-        )
-    location: str | None = r.headers.get("location")
-
-    if r.status_code != 302 or location is None:
-        abort(404)
-
-    return redirect(nohostname(location))
