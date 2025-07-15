@@ -12,7 +12,3 @@ def base64s_decode(s: str) -> str:
 
 def urlbasename(url: str) -> str:
     return list(filter(None, urlparse(url).path.split("/")))[-1]
-
-
-def nohostname(url: str) -> str:
-    return urlparse(url)._replace(netloc="", scheme="").geturl()
