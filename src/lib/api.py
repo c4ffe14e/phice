@@ -1,6 +1,7 @@
 from collections import defaultdict
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from types import TracebackType
+from typing import TYPE_CHECKING, Any, Self
 
 if TYPE_CHECKING:
     import httpx
@@ -84,9 +85,6 @@ class Api:
 
         return result["exports"], route_type
 
-    def close(self) -> None:
-        self.client.close()
-
     # EXPERIMENTAL
     def from_html(self, url: str) -> dict[str, list[JSON]]:
         response: httpx.Response = self.client.get(url, follow_redirects=True)
@@ -114,6 +112,15 @@ class Api:
             self.lsd = orjson.loads(lsd_tag.string.encode()).get("l", "_")
 
         return dict(ret)
+
+    def close(self) -> None:
+        self.client.close()
+
+    def __enter__(self) -> Self:
+        return self
+
+    def __exit__(self, typ: type[BaseException] | None, exc: BaseException | None, tb: TracebackType | None) -> None:
+        self.close()
 
     def ProfileCometHeaderQuery(self, user_id: str) -> list[JSON]:
         return self.fetch(
