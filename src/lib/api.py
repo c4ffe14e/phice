@@ -1,7 +1,9 @@
 from collections import defaultdict
 from pathlib import Path
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, Self
+from typing import TYPE_CHECKING, Self
+
+from .datatypes import JSON
 
 if TYPE_CHECKING:
     import httpx
@@ -10,8 +12,6 @@ from bs4 import BeautifulSoup, Tag
 
 from .exceptions import ResponseError
 from .wrappers import http_client
-
-type JSON = dict[str, Any]
 
 DATA_PATH: Path = Path(__file__).resolve().parent / "data"
 
