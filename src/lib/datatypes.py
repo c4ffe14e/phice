@@ -6,6 +6,11 @@ class Unsupported:
     pass
 
 
+@dataclass
+class Unavailable:
+    pass
+
+
 @dataclass(kw_only=True)
 class Photo:
     url: str
@@ -32,11 +37,6 @@ class Event:
     name: str
     description: str
     time: str
-
-
-@dataclass
-class Unavailable:
-    pass
 
 
 @dataclass(kw_only=True)
@@ -103,7 +103,7 @@ class Post:
     voters_count: int | None = None
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Comment:
     id: str
     feedback_id: str
@@ -115,3 +115,11 @@ class Comment:
     replies_count: int = 0
     reactions: dict[str, int] = field(default_factory=dict)
     attachment: Photo | Video | Unsupported | AnimatedImage | None = None
+
+
+@dataclass(kw_only=True)
+class Album:
+    id: str
+    title: str
+    description: str = ""
+    items: list[Photo | Video] = field(default_factory=list)
