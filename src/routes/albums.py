@@ -20,8 +20,8 @@ def albums() -> str:
 
     return render_template(
         "album.html.jinja",
-        album=album,
+        album=album.album,
         cursor=album.cursor,
         has_next=album.has_next,
-        title=album.title,
+        title=album.album.title,
     )

@@ -2,7 +2,7 @@ from collections import defaultdict
 from urllib.parse import parse_qs, urlparse
 
 from .api import JSON, Api
-from .datatypes import Comment, Feed, Photo, Post, User, Video
+from .datatypes import Album, Comment, Feed, Post, User
 from .exceptions import NotFound, ParsingError
 from .parsers import parse_album_item, parse_comment, parse_post, parse_search
 from .utils import base64s, base64s_decode, urlbasename
@@ -304,15 +304,15 @@ class GetAlbum:
 
             self.cursor: str | None = cursor
             self.has_next: bool = bool(cursor)
-            self.items: list[Photo | Video] = []
-            self.title: str = album["title"]["text"]
-            self.description: str = ""
-
+            self.album: Album = Album(
+                id=album["id"],
+                title=album["title"]["text"],
+            )
             if description := album.get("message"):
-                self.description = description["text"]
+                self.album.description = description["text"]
 
             if not self.cursor:
-                self.items.extend(parse_album_item(i["node"]) for i in album["media"]["edges"])
+                self.album.items.extend(parse_album_item(i["node"]) for i in album["media"]["edges"])
                 self.cursor = album["media"]["page_info"]["end_cursor"]
                 self.has_next = album["media"]["page_info"]["has_next_page"]
             if self.has_next:
@@ -321,7 +321,7 @@ class GetAlbum:
                         "media"
                     ]
 
-                    self.items.extend(parse_album_item(i["node"]) for i in next_items["edges"])
+                    self.album.items.extend(parse_album_item(i["node"]) for i in next_items["edges"])
                     self.cursor = next_items["page_info"]["end_cursor"]
                     self.has_next = next_items["page_info"]["has_next_page"]
                     if not self.has_next:
