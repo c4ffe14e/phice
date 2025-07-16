@@ -51,7 +51,7 @@
                             <video loop autoplay muted src="{{ i.url | proxy }}"><a href="{{ i.url | proxy }}">Video</a></video>
                         {%- elif t == "Poll" -%}
                             {%- for j in i.options -%}
-                                {{ j[0] ~ " " ~ j[1] ~ " " ~ j[2] ~ "%" }}<br />
+                                {{ j[0] ~ " (" ~ j[1] ~ ") " ~ j[2] ~ "%" }}<br />
                             {%- endfor -%}
                         {%- elif t == "Unavailable" -%}
                             This content isn't available right now

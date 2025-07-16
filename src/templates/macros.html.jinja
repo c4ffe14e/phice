@@ -176,11 +176,16 @@
                         <div class="post_poll post_attachments_item">
                             <h3 class="post_poll_text">{{ i.text }}</h3>
                             {% for j in i.options %}
-                                <div class="post_poll_item">
-                                    <div class="post_poll_item_bg" style="--persent: {{ j[2] }}%"></div>
-                                    <span class="post_poll_item_text">{{ j[0] }}</span><span
-                                        class="post_poll_item_count"
-                                    >{{ j[1] | format_number }} {{ j[2] }}%</span>
+                                <div class="post_poll_item" style="--persent: {{ j[2] }}%">
+                                    <div class="post_poll_item_bg"></div>
+                                    <div class="post_poll_item_layer1">
+                                        <span class="post_poll_item_text">{{ j[0] }}</span><span class="post_poll_item_count"
+                                        >({{ j[1] | format_number }}) {{ j[2] }}%</span>
+                                    </div>
+                                    <div class="post_poll_item_layer2">
+                                        <span class="post_poll_item_text">{{ j[0] }}</span><span class="post_poll_item_count"
+                                        >({{ j[1] | format_number }}) {{ j[2] }}%</span>
+                                    </div>
                                 </div>
                             {% endfor %}
                         </div>
