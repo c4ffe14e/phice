@@ -261,7 +261,6 @@ input[type="number"] {
     display: flex;
     position: relative;
     margin: 8px;
-    padding: 4px;
     border-radius: 8px;
     background-color: var(--background3);
     overflow: hidden;
@@ -272,10 +271,23 @@ input[type="number"] {
     font-weight: 425;
 }
 
-.post_poll_item_count,
-.post_poll_item_text {
+.post_poll_item_layer1 {
     z-index: 1;
-    text-shadow: 1px 1px 0 var(--background3);
+    color: var(--background3);
+}
+
+.post_poll_item_layer2 {
+    z-index: 2;
+    position: absolute;
+    clip-path: inset(0 0 0 var(--persent, 0));
+}
+
+.post_poll_item_layer1,
+.post_poll_item_layer2 {
+    display: flex;
+    width: 100%;
+    padding: 4px;
+    box-sizing: border-box;
 }
 
 .post_poll_item_bg {
