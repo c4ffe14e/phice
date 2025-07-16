@@ -1,4 +1,7 @@
 from dataclasses import dataclass, field
+from typing import Any
+
+type JSON = dict[str, Any]
 
 
 @dataclass

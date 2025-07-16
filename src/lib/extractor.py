@@ -1,8 +1,8 @@
 from collections import defaultdict
 from urllib.parse import parse_qs, urlparse
 
-from .api import JSON, Api
-from .datatypes import Album, Comment, Feed, Post, User
+from .api import Api
+from .datatypes import JSON, Album, Comment, Feed, Post, User
 from .exceptions import NotFound, ParsingError
 from .parsers import parse_album_item, parse_comment, parse_post, parse_search
 from .utils import base64s, base64s_decode, urlbasename
