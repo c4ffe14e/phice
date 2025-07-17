@@ -1,7 +1,7 @@
 import orjson
 
-from .api import JSON
 from .datatypes import (
+    JSON,
     AnimatedImage,
     Comment,
     Event,
