@@ -27,7 +27,7 @@ class Api:
         self.lsd: str = "_"
         self.client: httpx.Client = http_client(base_url="https://www.facebook.com", proxy=proxy)
 
-    def fetch(self, name: str, variables: JSON) -> list[JSON]:
+    def fetch(self, name: str, variables: JSON, *, fuck_facebook: bool = False) -> list[JSON]:
         response: httpx.Response = self.client.post(
             "/api/graphql/",
             headers={
@@ -50,7 +50,7 @@ class Api:
         result: list[JSON] = [orjson.loads(i) for i in response.text.splitlines()]
 
         errors: list[JSON] | None = result[0].get("errors")
-        if errors:
+        if errors and not (fuck_facebook and "field_exception" in errors[0]["message"]):
             raise ResponseError(f"{name}: {errors[0]['message']}", code=errors[0].get("code"))
 
         return result
@@ -157,6 +157,7 @@ class Api:
                 "stream_count": 1,
                 "userID": user_id,
             },
+            fuck_facebook=True,
         )
 
     def ProfileCometTimelineFeedRefetchQuery(self, user_id: str, cursor: str | None) -> list[JSON]:
