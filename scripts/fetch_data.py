@@ -51,7 +51,7 @@ with httpx.Client(headers=headers) as client:
         for j in scripts_urls:
             script: str = client.get(j).text
 
-            for name in api_names[:]:
+            for name in api_names.copy():
                 ids = re.search(rf'^__d\("{name}_facebookRelayOperation",.*exports="([0-9]+)"', script, re.MULTILINE)
                 if ids:
                     doc_ids[name] = int(ids.group(1))

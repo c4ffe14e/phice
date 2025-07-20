@@ -21,6 +21,7 @@ indent-width = 4
 line-length = 132
 
 [tool.ruff.lint]
+preview = true
 select = [
     "ANN",
     "S",
@@ -51,6 +52,8 @@ select = [
     "RUF",
     "TRY",
     "PTH",
+    "T10",
+    "FURB",
 ]
 ignore = ["TRY003"]
 
