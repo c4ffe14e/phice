@@ -1,4 +1,5 @@
 from collections import defaultdict
+from contextlib import suppress
 from pathlib import Path
 from types import TracebackType
 from typing import TYPE_CHECKING, Self
@@ -86,26 +87,30 @@ class Api:
         return result["exports"], route_type
 
     # EXPERIMENTAL
-    def from_html(self, url: str) -> dict[str, list[JSON]]:
-        response: httpx.Response = self.client.get(url, follow_redirects=True)
+    def query_from_html(self, route: str) -> dict[str, list[JSON]]:
+        response: httpx.Response = self.client.get(f"https://www.facebook.com/{route}", follow_redirects=True)
         if response.status_code != 200:
             raise ResponseError(f"Facebook returned {response.status_code}")
+
         soup: BeautifulSoup = BeautifulSoup(response.text, "lxml")
-        data_script_tags = soup.find_all(
-            lambda t: t.name == "script" and t.get("type") == "application/json" and not t.has_attr("id")
-        )
+        script_tags = soup.find_all(lambda t: t.name == "script" and t.get("type") == "application/json" and not t.has_attr("id"))
 
         ret: defaultdict[str, list[JSON]] = defaultdict(list)
-        for tag in data_script_tags:
+        for tag in script_tags:
             if isinstance(tag, Tag) and tag.string is not None:
                 try:
-                    parsed_json: JSON | list[JSON] = orjson.loads(str(tag.string))["require"][0][3][0]
+                    parsed_json: JSON | list[JSON] | str | int = orjson.loads(tag.string.encode())["require"][0][3][0]
                 except IndexError:
                     continue
                 if isinstance(parsed_json, dict) and "__bbox" in parsed_json:
                     for obj in parsed_json["__bbox"]["require"]:
                         if obj[0].startswith("RelayPrefetchedStreamCache"):
-                            ret[obj[3][0][4:].rsplit("_", 1)[0][:-14]].append(obj[3][1]["__bbox"]["result"])
+                            name: str = obj[3][0][4:].rsplit("_", 1)[0][:-14]
+                            result: JSON = obj[3][1]["__bbox"]["result"]
+                            ret[name].append(result)
+
+        with suppress(KeyError):
+            del ret["useCometLogInFormQuery"]
 
         lsd_tag = soup.find("script", id="__eqmc", type="application/json")
         if isinstance(lsd_tag, Tag) and lsd_tag.string is not None:

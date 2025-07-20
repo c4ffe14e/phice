@@ -150,6 +150,7 @@ class GetPost:
             if post_id is None:
                 raise NotFound("Post not found")
             sort_type: str | None = None if sort is None else COMMENT_FILTERS[sort]
+
             post_payload: JSON = api.CometSinglePostDialogContentQuery(post_id, focus)[0]["data"]["node"]
 
             self.cursor: str | None = cursor
