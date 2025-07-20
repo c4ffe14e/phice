@@ -1,4 +1,4 @@
-class NotFound(Exception):
+class NotFoundError(Exception):
     pass
 
 

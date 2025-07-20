@@ -3,7 +3,7 @@ from urllib.parse import parse_qs, urlparse
 
 from .api import Api
 from .datatypes import JSON, Album, Comment, Feed, Post, User
-from .exceptions import NotFound, ParsingError
+from .exceptions import NotFoundError, ParsingError
 from .parsers import parse_album_item, parse_comment, parse_post, parse_search
 from .utils import base64s, base64s_decode, urlbasename
 
@@ -33,7 +33,7 @@ class GetProfile:
         with Api(proxy=proxy) as api:
             route, route_type = api.route(username)
             if not route or route_type != "profile":
-                raise NotFound(f"Profile {username} not found")
+                raise NotFoundError(f"Profile {username} not found")
             user_id: str = route["rootView"]["props"]["userID"]
 
             header: JSON = api.ProfileCometHeaderQuery(user_id)[0]["data"]["user"]["profile_header_renderer"]["user"]
@@ -148,7 +148,7 @@ class GetPost:
                     case _:
                         pass
             if post_id is None:
-                raise NotFound("Post not found")
+                raise NotFoundError("Post not found")
             sort_type: str | None = None if sort is None else COMMENT_FILTERS[sort]
 
             post_payload: JSON = api.CometSinglePostDialogContentQuery(post_id, focus)[0]["data"]["node"]
@@ -226,7 +226,7 @@ class GetGroup:
         with Api(proxy=proxy) as api:
             route, route_type = api.route(f"groups/{token}")
             if not route or route_type != "group":
-                raise NotFound(f"Group {token} not found")
+                raise NotFoundError(f"Group {token} not found")
             group_id: str = route["rootView"]["props"]["groupID"]
 
             header: JSON = api.CometGroupRootQuery(group_id)[0]["data"]["group"]["profile_header_renderer"]["group"]
@@ -297,7 +297,7 @@ class GetAlbum:
         with Api(proxy=proxy) as api:
             album: JSON | None = api.CometPhotoAlbumQuery(token)[0]["data"]["album"]
             if not album:
-                raise NotFound("Album not found")
+                raise NotFoundError("Album not found")
 
             self.cursor: str | None = cursor
             self.has_next: bool = bool(cursor)

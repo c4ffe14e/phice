@@ -5,21 +5,21 @@ from traceback import format_exception
 from flask import Blueprint, render_template
 from werkzeug.exceptions import HTTPException, InternalServerError
 
-from ..lib.exceptions import NotFound, ResponseError
+from ..lib.exceptions import NotFoundError, ResponseError
 
 bp: Blueprint = Blueprint("error_handlers", __name__)
 
 
-@bp.app_errorhandler(NotFound)
+@bp.app_errorhandler(NotFoundError)
 @bp.app_errorhandler(ResponseError)
 @bp.app_errorhandler(HTTPException)
-def error_handler(e: HTTPException | NotFound | ResponseError) -> tuple[str, int]:
+def error_handler(e: HTTPException | NotFoundError | ResponseError) -> tuple[str, int]:
     status_code: int = 500
     message: str | None = None
     tb: str | None = None
 
     match e:
-        case NotFound():
+        case NotFoundError():
             status_code = 404
             message = ", ".join(e.args)
         case ResponseError():
