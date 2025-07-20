@@ -120,7 +120,11 @@
             </a>
             <div>
                 <div>
-                    <a href="{{ url_for('profile.profile', username=(post.author.username or post.author.id)) }}">
+                    <a
+                        {% if post.author.username %}
+                            href="{{ url_for('profile.profile', username=post.author.username) }}"
+                        {% endif %}
+                    >
                         <span class="profile_name">{{ post.author.name }}</span>{{
                             icon("circle-check", class="profile_checkmark") if post.author.verified
                         }}</a>

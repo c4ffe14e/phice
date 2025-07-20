@@ -146,7 +146,9 @@ def parse_post(node: JSON, *, shared: bool = False) -> Post:
 
     username: str | None = None
     if author["url"]:
-        if author["url"].startswith("https://www.facebook.com/people/"):
+        if author["__typename"] == "InstagramUserV2":
+            username = None
+        elif author["url"].startswith("https://www.facebook.com/people/"):
             username = base64s_decode(story["id"])[4:].split(":", 1)[0]
         else:
             username = urlbasename(author["url"])

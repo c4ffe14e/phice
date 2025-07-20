@@ -137,9 +137,7 @@ class GetPost:
                     case "reel":
                         reel: JSON | None = api.FBReelsRootWithEntrypointQuery(token)[0]["data"]["video"]
                         if reel:
-                            reel_owner_id: str = reel["creation_story"]["video"]["owner"]["id"]
-                            reel_id: str = reel["creation_story"]["post_id"]
-                            post_id = base64s(f"S:_I{reel_owner_id}:{reel_id}:{reel_id}")
+                            post_id = reel["creation_story"]["id"]
                     case "photos":
                         photo: JSON | None = api.CometPhotoRootContentQuery(token)[0]["data"]["currMedia"]
                         if photo:
