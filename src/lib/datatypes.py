@@ -69,7 +69,6 @@ class Group:
 type PostAttachment = Unsupported | Photo | Video | Event | Unavailable | Poll | AnimatedImage
 type CommentAttachment = Photo | Video | Unsupported | AnimatedImage | None
 type AlbumItem = Photo | Video
-type SearchItem = User | Post
 
 
 @dataclass(kw_only=True)
@@ -134,3 +133,6 @@ class Album:
     title: str
     description: str = ""
     items: list[AlbumItem] = field(default_factory=list)
+
+
+type SearchItem = User | Post
