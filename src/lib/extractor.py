@@ -3,7 +3,7 @@ from urllib.parse import parse_qs, urlparse
 
 from .api import Api
 from .datatypes import JSON, Album, Feed, Post, SearchItem, User
-from .exceptions import NotFoundError, ParsingError
+from .exceptions import NotFoundError, ParsingError, ResponseError
 from .parsers import parse_album_item, parse_comment, parse_post, parse_search
 from .utils import base64s, base64s_decode, urlbasename
 
@@ -42,6 +42,7 @@ class GetProfile:
         self.cursor: str | None = cursor
         self.has_next: bool = bool(cursor)
         self.feed: Feed
+        self.paging_error: ResponseError | None = None
 
         with Api(proxy=proxy) as api:
             route, route_type = api.route(username)
@@ -108,17 +109,22 @@ class GetProfile:
                 else:
                     raise ParsingError("Couldn't find page_info")
             if self.has_next:
-                for _ in range(PROFILE_PAGING):
-                    response: list[JSON] = api.ProfileCometTimelineFeedRefetchQuery(user_id, self.cursor)
-                    rest: list[JSON] = [i for i in response[1:] if "ProfileCometTimelineFeed_user" in i.get("label", "")]
+                try:
+                    for _ in range(PROFILE_PAGING):
+                        response: list[JSON] = api.ProfileCometTimelineFeedRefetchQuery(user_id, self.cursor)
+                        rest: list[JSON] = [i for i in response[1:] if "ProfileCometTimelineFeed_user" in i.get("label", "")]
 
-                    if edges := response[0]["data"]["node"]["timeline_list_feed_units"]["edges"]:
-                        self.feed.posts.append(parse_post(edges[0]["node"]))
-                    self.feed.posts.extend(parse_post(i["data"]["node"]) for i in rest[:-1])
-                    self.cursor = rest[-1]["data"]["page_info"]["end_cursor"]
-                    self.has_next = rest[-1]["data"]["page_info"]["has_next_page"]
-                    if not self.has_next:
-                        break
+                        if edges := response[0]["data"]["node"]["timeline_list_feed_units"]["edges"]:
+                            self.feed.posts.append(parse_post(edges[0]["node"]))
+                        self.feed.posts.extend(parse_post(i["data"]["node"]) for i in rest[:-1])
+                        self.cursor = rest[-1]["data"]["page_info"]["end_cursor"]
+                        self.has_next = rest[-1]["data"]["page_info"]["has_next_page"]
+                        if not self.has_next:
+                            break
+                except ResponseError as e:
+                    self.paging_error = e
+                    self.cursor = None
+                    self.has_next = False
 
 
 class GetPost:
@@ -135,6 +141,7 @@ class GetPost:
         self.has_next: bool = bool(cursor)
         self.focus: str | None = focus
         self.post: Post
+        self.paging_error: ResponseError | None = None
 
         with Api(proxy=proxy) as api:
             route, route_type = api.route(token)
@@ -193,35 +200,45 @@ class GetPost:
                         self.cursor = replies["page_info"]["end_cursor"]
                         self.has_next = replies["page_info"]["has_next_page"]
                     if self.has_next:
-                        for _ in range(COMMENT_PAGING):
-                            next_replies: JSON = api.Depth1CommentsListPaginationQuery(
-                                main_comment["feedback"]["id"],
-                                main_comment["feedback"]["expansion_info"]["expansion_token"],
-                                self.cursor,
-                            )[0]["data"]["node"]["replies_connection"]
+                        try:
+                            for _ in range(COMMENT_PAGING):
+                                next_replies: JSON = api.Depth1CommentsListPaginationQuery(
+                                    main_comment["feedback"]["id"],
+                                    main_comment["feedback"]["expansion_info"]["expansion_token"],
+                                    self.cursor,
+                                )[0]["data"]["node"]["replies_connection"]
 
-                            self.post.comments.extend(parse_comment(i["node"]) for i in next_replies["edges"])
-                            self.cursor = next_replies["page_info"]["end_cursor"]
-                            self.has_next = next_replies["page_info"]["has_next_page"]
-                            if not self.has_next:
-                                break
+                                self.post.comments.extend(parse_comment(i["node"]) for i in next_replies["edges"])
+                                self.cursor = next_replies["page_info"]["end_cursor"]
+                                self.has_next = next_replies["page_info"]["has_next_page"]
+                                if not self.has_next:
+                                    break
+                        except ResponseError as e:
+                            self.paging_error = e
+                            self.cursor = None
+                            self.has_next = False
                 else:
                     if not self.cursor:
                         self.post.comments.extend(parse_comment(i["node"]) for i in comments_payload["edges"])
                         self.cursor = comments_payload["page_info"]["end_cursor"]
                         self.has_next = comments_payload["page_info"]["has_next_page"]
                     if self.has_next:
-                        for _ in range(COMMENT_PAGING):
-                            next_comments: JSON = api.CommentsListComponentsPaginationQuery(
-                                self.post.feedback_id,
-                                self.cursor,
-                            )[0]["data"]["node"]["comment_rendering_instance_for_feed_location"]["comments"]
+                        try:
+                            for _ in range(COMMENT_PAGING):
+                                next_comments: JSON = api.CommentsListComponentsPaginationQuery(
+                                    self.post.feedback_id,
+                                    self.cursor,
+                                )[0]["data"]["node"]["comment_rendering_instance_for_feed_location"]["comments"]
 
-                            self.post.comments.extend(parse_comment(i["node"]) for i in next_comments["edges"])
-                            self.cursor = next_comments["page_info"]["end_cursor"]
-                            self.has_next = next_comments["page_info"]["has_next_page"]
-                            if not self.has_next:
-                                break
+                                self.post.comments.extend(parse_comment(i["node"]) for i in next_comments["edges"])
+                                self.cursor = next_comments["page_info"]["end_cursor"]
+                                self.has_next = next_comments["page_info"]["has_next_page"]
+                                if not self.has_next:
+                                    break
+                        except ResponseError as e:
+                            self.paging_error = e
+                            self.cursor = None
+                            self.has_next = False
 
 
 class GetGroup:
@@ -243,9 +260,9 @@ class GetGroup:
             group_id: str = route["rootView"]["props"]["groupID"]
 
             header: JSON = api.CometGroupRootQuery(group_id)[0]["data"]["group"]["profile_header_renderer"]["group"]
-            side_panel: JSON = api.GroupsCometDiscussionLayoutRootQuery(group_id)[-1]["data"]["comet_discussion_tab_cards"][0][
-                "group"
-            ]
+            side_panel: JSON = api.GroupsCometDiscussionLayoutRootQuery(
+                group_id,
+            )[-1]["data"]["comet_discussion_tab_cards"][0]["group"]
             posts_feed: list[JSON] = api.CometGroupDiscussionRootSuccessQuery(group_id)
 
             self.feed = Feed(
@@ -307,6 +324,7 @@ class GetAlbum:
         self.cursor: str | None = cursor
         self.has_next: bool = bool(cursor)
         self.album: Album
+        self.paging_error: ResponseError | None = None
 
         with Api(proxy=proxy) as api:
             album: JSON | None = api.CometPhotoAlbumQuery(token)[0]["data"]["album"]
@@ -325,16 +343,22 @@ class GetAlbum:
                 self.cursor = album["media"]["page_info"]["end_cursor"]
                 self.has_next = album["media"]["page_info"]["has_next_page"]
             if self.has_next:
-                for _ in range(ALBUM_PAGING):
-                    next_items: JSON = api.CometAlbumPhotoCollagePaginationQuery(album["id"], self.cursor)[0]["data"]["node"][
-                        "media"
-                    ]
+                try:
+                    for _ in range(ALBUM_PAGING):
+                        next_items: JSON = api.CometAlbumPhotoCollagePaginationQuery(
+                            album["id"],
+                            self.cursor,
+                        )[0]["data"]["node"]["media"]
 
-                    self.album.items.extend(parse_album_item(i["node"]) for i in next_items["edges"])
-                    self.cursor = next_items["page_info"]["end_cursor"]
-                    self.has_next = next_items["page_info"]["has_next_page"]
-                    if not self.has_next:
-                        break
+                        self.album.items.extend(parse_album_item(i["node"]) for i in next_items["edges"])
+                        self.cursor = next_items["page_info"]["end_cursor"]
+                        self.has_next = next_items["page_info"]["has_next_page"]
+                        if not self.has_next:
+                            break
+                except ResponseError as e:
+                    self.paging_error = e
+                    self.cursor = None
+                    self.has_next = False
 
 
 class Search:
@@ -349,23 +373,29 @@ class Search:
         self.cursor: str | None = cursor
         self.has_next: bool = bool(cursor)
         self.results: list[SearchItem] = []
+        self.paging_error: ResponseError | None = None
 
         with Api(proxy=proxy) as api:
             search_type, filters = SEARCH_TYPES[category]
-            for _ in range(SEARCH_PAGING):
-                results_payload: JSON = api.SearchCometResultsPaginatedResultsQuery(
-                    query,
-                    search_type,
-                    self.cursor,
-                    filters,
-                )[0]["data"]["serpResponse"]["results"]
+            try:
+                for _ in range(SEARCH_PAGING):
+                    results_payload: JSON = api.SearchCometResultsPaginatedResultsQuery(
+                        query,
+                        search_type,
+                        self.cursor,
+                        filters,
+                    )[0]["data"]["serpResponse"]["results"]
 
-                for i in results_payload["edges"]:
-                    item: User | Post | None = parse_search(i)
-                    if item is not None:
-                        self.results.append(item)
+                    for i in results_payload["edges"]:
+                        item: User | Post | None = parse_search(i)
+                        if item is not None:
+                            self.results.append(item)
 
-                self.cursor = results_payload["page_info"]["end_cursor"]
-                self.has_next = results_payload["page_info"]["has_next_page"]
-                if not self.has_next:
-                    break
+                    self.cursor = results_payload["page_info"]["end_cursor"]
+                    self.has_next = results_payload["page_info"]["has_next_page"]
+                    if not self.has_next:
+                        break
+            except ResponseError as e:
+                self.paging_error = e
+                self.cursor = None
+                self.has_next = False
