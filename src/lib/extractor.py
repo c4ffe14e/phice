@@ -16,12 +16,12 @@ COMMENT_FILTERS: defaultdict[str, str] = defaultdict(
     },
 )
 SEARCH_TYPES: defaultdict[str, tuple[str, list[str]]] = defaultdict(
-    lambda: ("PAGES_TAB", [""]),
+    lambda: ("PAGES_TAB", []),
     {
-        "pages": ("PAGES_TAB", [""]),
-        "posts": ("POSTS_TAB", [""]),
+        "pages": ("PAGES_TAB", []),
+        "posts": ("POSTS_TAB", []),
         "recent_posts": ("POSTS_TAB", ['{"name":"recent_posts","args":""}']),
-        "people": ("PEOPLE_TAB", [""]),
+        "people": ("PEOPLE_TAB", []),
     },
 )
 PROFILE_PAGING: int = 3
