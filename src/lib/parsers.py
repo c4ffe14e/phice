@@ -187,6 +187,10 @@ def parse_post(node: JSON, *, shared: bool = False) -> Post:
         post.share_count = feedback["share_count"]["count"]
         post.feedback_id = feedback["id"]
         post.view_count = feedback["video_view_count"]
+
+        inform_treatment: JSON | None = feedback_container["story"]["inform_treatment_for_messaging"]
+        if inform_treatment and inform_treatment["messaging_inform_treatment_name"] == "ai_generated_content":
+            post.badges.append("AI")
     else:
         post.reactions = parse_reactions([])
 
@@ -198,7 +202,7 @@ def parse_post(node: JSON, *, shared: bool = False) -> Post:
             case "FeedStoryLongerTimestamp" | "FeedStoryMinimizedTimestamp":
                 post.time = i["story"]["creation_time"]
             case "StoryUserSignals":
-                post.roles.extend(j["title"]["text"] for j in i["story"]["user_signals_info"]["displayed_user_signals"])
+                post.badges.extend(j["title"]["text"] for j in i["story"]["user_signals_info"]["displayed_user_signals"])
             case _:
                 pass
 

@@ -103,7 +103,7 @@ class Post:
     comments_count: int = 0
     share_count: int = 0
     view_count: int | None = None
-    roles: list[str] = field(default_factory=list)
+    badges: list[str] = field(default_factory=list)
     shared_post: "Post | None" = None
     voters_count: int | None = None
     comments: list[Comment] = field(default_factory=list)

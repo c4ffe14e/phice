@@ -128,7 +128,7 @@
                         <span class="profile_name">{{ post.author.name }}</span>{{
                             icon("circle-check", class="profile_checkmark") if post.author.verified
                         }}</a>
-                    {%- if post.roles %}<span class="user_roles">{{ " • ".join(post.roles) }}</span>{% endif %}
+                    {%- if post.badges %}<span class="badges">{{ " • ".join(post.badges) }}</span>{% endif %}
                     {%- if post.from_group -%}
                         {{ icon("chevron-right", class="group_arrow") }}<a
                             href="{{
