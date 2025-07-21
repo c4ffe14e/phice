@@ -1,3 +1,5 @@
+from contextlib import suppress
+
 import orjson
 
 from .datatypes import (
@@ -9,6 +11,7 @@ from .datatypes import (
     Photo,
     Poll,
     Post,
+    Reactions,
     Unavailable,
     Unsupported,
     User,
@@ -17,38 +20,24 @@ from .datatypes import (
 from .exceptions import ParsingError
 from .utils import base64s_decode, urlbasename
 
+REACTIONS_IDS: dict[str, str] = {
+    "1635855486666999": "like",
+    "1678524932434102": "love",
+    "613557422527858": "care",
+    "115940658764963": "haha",
+    "478547315650144": "wow",
+    "908563459236466": "sad",
+    "444813342392137": "angry",
+}
 
-def parse_reactions(edges: list[JSON]) -> dict[str, int]:
-    reactions: dict[str, int] = {
-        "like": 0,
-        "love": 0,
-        "care": 0,
-        "haha": 0,
-        "wow": 0,
-        "sad": 0,
-        "angry": 0,
-    }
-    total: int = 0
+
+def parse_reactions(edges: list[JSON]) -> Reactions:
+    reactions: Reactions = Reactions()
     for i in edges:
-        total += i["reaction_count"]
-        match i["node"]["id"]:
-            case "1635855486666999":
-                reactions["like"] = i["reaction_count"]
-            case "1678524932434102":
-                reactions["love"] = i["reaction_count"]
-            case "613557422527858":
-                reactions["care"] = i["reaction_count"]
-            case "115940658764963":
-                reactions["haha"] = i["reaction_count"]
-            case "478547315650144":
-                reactions["wow"] = i["reaction_count"]
-            case "908563459236466":
-                reactions["sad"] = i["reaction_count"]
-            case "444813342392137":
-                reactions["angry"] = i["reaction_count"]
-            case _:
-                pass
-    reactions["total"] = total
+        with suppress(KeyError):
+            reaction_name: str = REACTIONS_IDS[i["node"]["id"]]
+            setattr(reactions, reaction_name, i["reaction_count"])
+        reactions.total += i["reaction_count"]
 
     return reactions
 
@@ -189,8 +178,6 @@ def parse_post(node: JSON, *, shared: bool = False) -> Post:
         inform_treatment: JSON | None = feedback_container["story"]["inform_treatment_for_messaging"]
         if inform_treatment and inform_treatment["messaging_inform_treatment_name"] == "ai_generated_content":
             post.badges.append("AI")
-    else:
-        post.reactions = parse_reactions([])
 
     if not shared and node["attached_story"]:
         post.shared_post = parse_post(node, shared=True)

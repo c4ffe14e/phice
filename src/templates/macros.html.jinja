@@ -69,20 +69,20 @@
                 <span class="comment_time" title="{{ comment.time | format_time_full }}">{{ comment.time | format_time }}</span>
                 <div class="comment_feedback">
                     <div class="reactions">
-                        {{ icon("thumbs-up") }}<span class="feedback_text">{{ comment.reactions["total"] | format_number }}</span>
+                        {{ icon("thumbs-up") }}<span class="feedback_text">{{ comment.reactions.total | format_number }}</span>
                     </div>
                     <div class="reactions_popup">
-                        {{ icon("thumbs-up") }}<span class="feedback_text">{{ comment.reactions["like"] | format_number }}</span>
-                        {{ icon("heart") }}<span class="feedback_text">{{ comment.reactions["love"] | format_number }}</span>
+                        {{ icon("thumbs-up") }}<span class="feedback_text">{{ comment.reactions.like | format_number }}</span>
+                        {{ icon("heart") }}<span class="feedback_text">{{ comment.reactions.love | format_number }}</span>
                         {{ icon("hand-holding-heart") }}<span class="feedback_text">{{
-                            comment.reactions["care"] | format_number
+                            comment.reactions.care | format_number
                         }}</span>
                         {{ icon("face-grin-squint") }}<span class="feedback_text">{{
-                            comment.reactions["haha"] | format_number
+                            comment.reactions.haha | format_number
                         }}</span>
-                        {{ icon("face-surprise") }}<span class="feedback_text">{{ comment.reactions["wow"] | format_number }}</span>
-                        {{ icon("face-sad-tear") }}<span class="feedback_text">{{ comment.reactions["sad"] | format_number }}</span>
-                        {{ icon("face-angry") }}<span class="feedback_text">{{ comment.reactions["angry"] | format_number }}</span>
+                        {{ icon("face-surprise") }}<span class="feedback_text">{{ comment.reactions.wow | format_number }}</span>
+                        {{ icon("face-sad-tear") }}<span class="feedback_text">{{ comment.reactions.sad | format_number }}</span>
+                        {{ icon("face-angry") }}<span class="feedback_text">{{ comment.reactions.angry | format_number }}</span>
                     </div>
                     <a
                         class="no_underline"
@@ -214,16 +214,16 @@
         {% if post.feedback_id is not none %}
             <div class="post_feedback">
                 <div class="reactions">
-                    {{ icon("thumbs-up") }}<span class="feedback_text">{{ post.reactions["total"] | format_number }}</span>
+                    {{ icon("thumbs-up") }}<span class="feedback_text">{{ post.reactions.total | format_number }}</span>
                 </div>
                 <div class="reactions_popup">
-                    {{ icon("thumbs-up") }}<span class="feedback_text">{{ post.reactions["like"] | format_number }}</span>
-                    {{ icon("heart") }}<span class="feedback_text">{{ post.reactions["love"] | format_number }}</span>
-                    {{ icon("hand-holding-heart") }}<span class="feedback_text">{{ post.reactions["care"] | format_number }}</span>
-                    {{ icon("face-grin-squint") }}<span class="feedback_text">{{ post.reactions["haha"] | format_number }}</span>
-                    {{ icon("face-surprise") }}<span class="feedback_text">{{ post.reactions["wow"] | format_number }}</span>
-                    {{ icon("face-sad-tear") }}<span class="feedback_text">{{ post.reactions["sad"] | format_number }}</span>
-                    {{ icon("face-angry") }}<span class="feedback_text">{{ post.reactions["angry"] | format_number }}</span>
+                    {{ icon("thumbs-up") }}<span class="feedback_text">{{ post.reactions.like | format_number }}</span>
+                    {{ icon("heart") }}<span class="feedback_text">{{ post.reactions.love | format_number }}</span>
+                    {{ icon("hand-holding-heart") }}<span class="feedback_text">{{ post.reactions.care | format_number }}</span>
+                    {{ icon("face-grin-squint") }}<span class="feedback_text">{{ post.reactions.haha | format_number }}</span>
+                    {{ icon("face-surprise") }}<span class="feedback_text">{{ post.reactions.wow | format_number }}</span>
+                    {{ icon("face-sad-tear") }}<span class="feedback_text">{{ post.reactions.sad | format_number }}</span>
+                    {{ icon("face-angry") }}<span class="feedback_text">{{ post.reactions.angry | format_number }}</span>
                 </div>
                 <a
                     class="no_underline"

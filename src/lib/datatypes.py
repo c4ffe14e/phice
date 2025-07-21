@@ -72,6 +72,18 @@ type AlbumItem = Photo | Video
 
 
 @dataclass(kw_only=True)
+class Reactions:
+    like: int = 0
+    love: int = 0
+    care: int = 0
+    haha: int = 0
+    wow: int = 0
+    sad: int = 0
+    angry: int = 0
+    total: int = 0
+
+
+@dataclass(kw_only=True)
 class Comment:
     id: str
     feedback_id: str
@@ -81,7 +93,7 @@ class Comment:
     text: str = ""
     time: int = 0
     replies_count: int = 0
-    reactions: dict[str, int] = field(default_factory=dict)
+    reactions: Reactions = field(default_factory=Reactions)
     attachment: CommentAttachment = None
 
 
@@ -98,7 +110,7 @@ class Post:
     time: int = 0
     attachments: list[PostAttachment] = field(default_factory=list)
     files_left: int = 0
-    reactions: dict[str, int] = field(default_factory=dict)
+    reactions: Reactions = field(default_factory=Reactions)
     comments_count: int = 0
     share_count: int = 0
     view_count: int | None = None
