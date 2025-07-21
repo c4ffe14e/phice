@@ -16,14 +16,12 @@ def groups(token: str) -> str | tuple[str, dict[str, str]]:
 
         return render_template(
             "timeline.rss.jinja",
-            info=group.feed,
-            posts=group.posts,
+            feed=group.feed,
         ), {"content-type": "application/rss+xml"}
 
     return render_template(
         "timeline.html.jinja",
-        info=group.feed,
-        posts=group.posts,
+        feed=group.feed,
         cursor=group.cursor,
         has_next=group.has_next,
         title=group.feed.name,

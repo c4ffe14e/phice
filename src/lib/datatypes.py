@@ -50,24 +50,6 @@ class Poll:
 
 
 @dataclass(kw_only=True)
-class Feed:
-    id: str
-    token: str
-    name: str
-    verified: bool = False
-    picture_url: str | None = None
-    cover_url: str | None = None
-    description: str = ""
-    followers: str | None = None
-    following: str | None = None
-    likes: str | None = None
-    members: str | None = None
-    is_group: bool = False
-    is_private: bool = False
-    info: list[dict[str, str | None]] = field(default_factory=list)
-
-
-@dataclass(kw_only=True)
 class User:
     id: str
     username: str | None
@@ -84,26 +66,10 @@ class Group:
     name: str
 
 
-@dataclass(kw_only=True)
-class Post:
-    id: str
-    post_id: str
-    author: User
-    from_group: Group | None = None
-    is_video: bool = False
-    feedback_id: str | None = None
-    text: str = ""
-    title: str | None = None
-    time: int = 0
-    attachments: list[Unsupported | Photo | Video | Event | Unavailable | Poll | AnimatedImage] = field(default_factory=list)
-    files_left: int = 0
-    reactions: dict[str, int] = field(default_factory=dict)
-    comments_count: int = 0
-    share_count: int = 0
-    view_count: int | None = None
-    roles: list[str] = field(default_factory=list)
-    shared_post: "Post | None" = None
-    voters_count: int | None = None
+type PostAttachment = Unsupported | Photo | Video | Event | Unavailable | Poll | AnimatedImage
+type CommentAttachment = Photo | Video | Unsupported | AnimatedImage | None
+type AlbumItem = Photo | Video
+type SearchItem = User | Post
 
 
 @dataclass(kw_only=True)
@@ -117,7 +83,49 @@ class Comment:
     time: int = 0
     replies_count: int = 0
     reactions: dict[str, int] = field(default_factory=dict)
-    attachment: Photo | Video | Unsupported | AnimatedImage | None = None
+    attachment: CommentAttachment = None
+
+
+@dataclass(kw_only=True)
+class Post:
+    id: str
+    post_id: str
+    author: User
+    from_group: Group | None = None
+    is_video: bool = False
+    feedback_id: str | None = None
+    text: str = ""
+    title: str | None = None
+    time: int = 0
+    attachments: list[PostAttachment] = field(default_factory=list)
+    files_left: int = 0
+    reactions: dict[str, int] = field(default_factory=dict)
+    comments_count: int = 0
+    share_count: int = 0
+    view_count: int | None = None
+    roles: list[str] = field(default_factory=list)
+    shared_post: "Post | None" = None
+    voters_count: int | None = None
+    comments: list[Comment] = field(default_factory=list)
+
+
+@dataclass(kw_only=True)
+class Feed:
+    id: str
+    token: str
+    name: str
+    verified: bool = False
+    picture_url: str | None = None
+    cover_url: str | None = None
+    description: str = ""
+    followers: str | None = None
+    following: str | None = None
+    likes: str | None = None
+    members: str | None = None
+    is_group: bool = False
+    is_private: bool = False
+    info: list[dict[str, str | None]] = field(default_factory=list)
+    posts: list[Post] = field(default_factory=list)
 
 
 @dataclass(kw_only=True)
@@ -125,4 +133,4 @@ class Album:
     id: str
     title: str
     description: str = ""
-    items: list[Photo | Video] = field(default_factory=list)
+    items: list[AlbumItem] = field(default_factory=list)

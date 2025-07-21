@@ -22,14 +22,12 @@ def profile(username: str = "", _: str | None = None) -> str | tuple[str, dict[s
 
         return render_template(
             "timeline.rss.jinja",
-            info=profile.feed,
-            posts=profile.posts,
+            feed=profile.feed,
         ), {"content-type": "application/rss+xml"}
 
     return render_template(
         "timeline.html.jinja",
-        info=profile.feed,
-        posts=profile.posts,
+        feed=profile.feed,
         cursor=profile.cursor,
         has_next=profile.has_next,
         title=profile.feed.name,

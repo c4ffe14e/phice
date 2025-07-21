@@ -8,33 +8,33 @@
 
 {% block content %}
     <div id="timeline_cover">
-        {% if info.cover_url %}
-            <img src="{{ info.cover_url | proxy }}" alt="{{ info.name }}'s profile cover" />
+        {% if feed.cover_url %}
+            <img src="{{ feed.cover_url | proxy }}" alt="{{ feed.name }}'s profile cover" />
         {% endif %}
     </div>
     <div id="timeline">
         <section id="timeline_info" class="card">
             <div id="timeline_header">
-                {% if not info.is_group %}
-                    <img id="timeline_picture" src="{{ info.picture_url | proxy }}" alt="{{ info.name }}'s profile picture" />
+                {% if not feed.is_group %}
+                    <img id="timeline_picture" src="{{ feed.picture_url | proxy }}" alt="{{ feed.name }}'s profile picture" />
                 {% endif %}
                 <div>
-                    <span class="profile_name">{{ info.name }}</span>{{
-                        icon("circle-check", class="profile_checkmark") if info.verified
+                    <span class="profile_name">{{ feed.name }}</span>{{
+                        icon("circle-check", class="profile_checkmark") if feed.verified
                     }}
                     <br />
-                    <span id="timeline_stat">{{ info.members + " Members" if info.members }}{{
-                        info.followers + " Followers" if info.followers
-                    }}{{ " • " + info.following + " Following" if info.following }}{{
-                        " • " + info.likes + " Likes" if info.likes
+                    <span id="timeline_stat">{{ feed.members + " Members" if feed.members }}{{
+                        feed.followers + " Followers" if feed.followers
+                    }}{{ " • " + feed.following + " Following" if feed.following }}{{
+                        " • " + feed.likes + " Likes" if feed.likes
                     }}</span>
                 </div>
             </div>
             <div id="timeline_intro">
-                {{ expandable_p(info.description, class="timeline_description") if info.description }}
-                {% if info.info %}
+                {{ expandable_p(feed.description, class="timeline_description") if feed.description }}
+                {% if feed.info %}
                     <hr />
-                    {% for i in info.info %}
+                    {% for i in feed.info %}
                         <a {% if i.url %}href="{{ i.url }}"{% endif %}>
                             <div class="timeline_info_cards">
                                 {%- if i.type == "website" -%}
@@ -62,10 +62,10 @@
             </div>
         </section>
         <section id="timeline_feed">
-            {% if info.is_private %}
+            {% if feed.is_private %}
                 <span class="card centered">{{ icon("lock") }} The content is private.</span>
-            {% elif posts %}
-                {% for i in posts %}
+            {% elif feed.posts %}
+                {% for i in feed.posts %}
                     {{ Post(i, expanded=request.cookies.get("expand") == "on") }}
                 {% endfor %}
                 {{ navigation_buttons() }}

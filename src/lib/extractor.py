@@ -2,7 +2,7 @@ from collections import defaultdict
 from urllib.parse import parse_qs, urlparse
 
 from .api import Api
-from .datatypes import JSON, Album, Comment, Feed, Post, User
+from .datatypes import JSON, Album, Feed, Post, SearchItem, User
 from .exceptions import NotFoundError, ParsingError
 from .parsers import parse_album_item, parse_comment, parse_post, parse_search
 from .utils import base64s, base64s_decode, urlbasename
@@ -13,6 +13,15 @@ COMMENT_FILTERS: defaultdict[str, str] = defaultdict(
         "all": "RANKED_UNFILTERED_CHRONOLOGICAL_REPLIES_INTENT_V1",
         "newest": "RECENT_ACTIVITY_INTENT_V1",
         "filtered": "RANKED_FILTERED_INTENT_V1",
+    },
+)
+SEARCH_TYPES: defaultdict[str, tuple[str, list[str]]] = defaultdict(
+    lambda: ("PAGES_TAB", [""]),
+    {
+        "pages": ("PAGES_TAB", [""]),
+        "posts": ("POSTS_TAB", [""]),
+        "recent_posts": ("POSTS_TAB", ['{"name":"recent_posts","args":""}']),
+        "people": ("PEOPLE_TAB", [""]),
     },
 )
 PROFILE_PAGING: int = 3
@@ -30,6 +39,10 @@ class GetProfile:
         *,
         proxy: str | None = None,
     ) -> None:
+        self.cursor: str | None = cursor
+        self.has_next: bool = bool(cursor)
+        self.feed: Feed
+
         with Api(proxy=proxy) as api:
             route, route_type = api.route(username)
             if not route or route_type != "profile":
@@ -40,10 +53,7 @@ class GetProfile:
             side: JSON = api.ProfilePlusCometLoggedOutRootQuery(user_id)[-1]["data"]["profile_tile_sections"]["edges"][0]["node"]
             posts_feed: list[JSON] = api.ProfileCometTimelineFeedQuery(user_id)
 
-            self.cursor: str | None = cursor
-            self.has_next: bool = bool(cursor)
-            self.posts: list[Post] = []
-            self.feed: Feed = Feed(
+            self.feed = Feed(
                 id=user_id,
                 token=user_id if header["url"].startswith("https://www.facebook.com/people/") else urlbasename(header["url"]),
                 name=header["name"],
@@ -89,7 +99,7 @@ class GetProfile:
 
             if not self.cursor:
                 if i := posts_feed[0]["data"]["user"]["timeline_list_feed_units"]["edges"]:
-                    self.posts.append(parse_post(i[0]["node"]))
+                    self.feed.posts.append(parse_post(i[0]["node"]))
                 for i in posts_feed[1:]:
                     if page_info := i["data"].get("page_info"):
                         self.cursor = page_info["end_cursor"]
@@ -103,8 +113,8 @@ class GetProfile:
                     rest: list[JSON] = [i for i in response[1:] if "ProfileCometTimelineFeed_user" in i.get("label", "")]
 
                     if edges := response[0]["data"]["node"]["timeline_list_feed_units"]["edges"]:
-                        self.posts.append(parse_post(edges[0]["node"]))
-                    self.posts.extend(parse_post(i["data"]["node"]) for i in rest[:-1])
+                        self.feed.posts.append(parse_post(edges[0]["node"]))
+                    self.feed.posts.extend(parse_post(i["data"]["node"]) for i in rest[:-1])
                     self.cursor = rest[-1]["data"]["page_info"]["end_cursor"]
                     self.has_next = rest[-1]["data"]["page_info"]["has_next_page"]
                     if not self.has_next:
@@ -121,6 +131,11 @@ class GetPost:
         *,
         proxy: str | None = None,
     ) -> None:
+        self.cursor: str | None = cursor
+        self.has_next: bool = bool(cursor)
+        self.focus: str | None = focus
+        self.post: Post
+
         with Api(proxy=proxy) as api:
             route, route_type = api.route(token)
             post_id: str | None = None
@@ -151,11 +166,7 @@ class GetPost:
 
             post_payload: JSON = api.CometSinglePostDialogContentQuery(post_id, focus)[0]["data"]["node"]
 
-            self.cursor: str | None = cursor
-            self.has_next: bool = bool(cursor)
-            self.focus: str | None = focus
-            self.post: Post = parse_post(post_payload)
-            self.comments: list[Comment] = []
+            self.post = parse_post(post_payload)
             if self.post.feedback_id is not None:
                 comments_payload: JSON
                 if sort_type:
@@ -174,11 +185,11 @@ class GetPost:
                 if self.focus:
                     main_comment: JSON = comments_payload["edges"][0]["node"]
 
-                    self.comments.append(parse_comment(main_comment))
+                    self.post.comments.append(parse_comment(main_comment))
                     if not self.cursor:
                         replies: JSON = main_comment["feedback"]["replies_connection"]
 
-                        self.comments.extend(parse_comment(i["node"]) for i in replies["edges"])
+                        self.post.comments.extend(parse_comment(i["node"]) for i in replies["edges"])
                         self.cursor = replies["page_info"]["end_cursor"]
                         self.has_next = replies["page_info"]["has_next_page"]
                     if self.has_next:
@@ -189,14 +200,14 @@ class GetPost:
                                 self.cursor,
                             )[0]["data"]["node"]["replies_connection"]
 
-                            self.comments.extend(parse_comment(i["node"]) for i in next_replies["edges"])
+                            self.post.comments.extend(parse_comment(i["node"]) for i in next_replies["edges"])
                             self.cursor = next_replies["page_info"]["end_cursor"]
                             self.has_next = next_replies["page_info"]["has_next_page"]
                             if not self.has_next:
                                 break
                 else:
                     if not self.cursor:
-                        self.comments.extend(parse_comment(i["node"]) for i in comments_payload["edges"])
+                        self.post.comments.extend(parse_comment(i["node"]) for i in comments_payload["edges"])
                         self.cursor = comments_payload["page_info"]["end_cursor"]
                         self.has_next = comments_payload["page_info"]["has_next_page"]
                     if self.has_next:
@@ -206,7 +217,7 @@ class GetPost:
                                 self.cursor,
                             )[0]["data"]["node"]["comment_rendering_instance_for_feed_location"]["comments"]
 
-                            self.comments.extend(parse_comment(i["node"]) for i in next_comments["edges"])
+                            self.post.comments.extend(parse_comment(i["node"]) for i in next_comments["edges"])
                             self.cursor = next_comments["page_info"]["end_cursor"]
                             self.has_next = next_comments["page_info"]["has_next_page"]
                             if not self.has_next:
@@ -221,6 +232,10 @@ class GetGroup:
         *,
         proxy: str | None = None,
     ) -> None:
+        self.cursor: str | None = cursor
+        self.has_next: bool = bool(cursor)
+        self.feed: Feed
+
         with Api(proxy=proxy) as api:
             route, route_type = api.route(f"groups/{token}")
             if not route or route_type != "group":
@@ -233,10 +248,7 @@ class GetGroup:
             ]
             posts_feed: list[JSON] = api.CometGroupDiscussionRootSuccessQuery(group_id)
 
-            self.cursor: str | None = cursor
-            self.has_next: bool = bool(cursor)
-            self.posts: list[Post] = []
-            self.feed: Feed = Feed(
+            self.feed = Feed(
                 id=group_id,
                 token=urlbasename(header["url"]),
                 name=header["name"],
@@ -260,7 +272,7 @@ class GetGroup:
 
             if not self.cursor:
                 if post := posts_feed[1]["data"].get("node"):
-                    self.posts.append(parse_post(post))
+                    self.feed.posts.append(parse_post(post))
                 for i in posts_feed[1:]:
                     if page_info := i["data"].get("page_info"):
                         self.cursor = page_info["end_cursor"]
@@ -276,8 +288,8 @@ class GetGroup:
                     ]
 
                     if edges := response[0]["data"]["node"]["group_feed"]["edges"]:
-                        self.posts.append(parse_post(edges[0]["node"]))
-                    self.posts.extend(parse_post(i["data"]["node"]) for i in rest[:-1])
+                        self.feed.posts.append(parse_post(edges[0]["node"]))
+                    self.feed.posts.extend(parse_post(i["data"]["node"]) for i in rest[:-1])
                     self.cursor = rest[-1]["data"]["page_info"]["end_cursor"]
                     self.has_next = rest[-1]["data"]["page_info"]["has_next_page"]
                     if not self.has_next:
@@ -292,14 +304,16 @@ class GetAlbum:
         *,
         proxy: str | None = None,
     ) -> None:
+        self.cursor: str | None = cursor
+        self.has_next: bool = bool(cursor)
+        self.album: Album
+
         with Api(proxy=proxy) as api:
             album: JSON | None = api.CometPhotoAlbumQuery(token)[0]["data"]["album"]
             if not album:
                 raise NotFoundError("Album not found")
 
-            self.cursor: str | None = cursor
-            self.has_next: bool = bool(cursor)
-            self.album: Album = Album(
+            self.album = Album(
                 id=album["id"],
                 title=album["title"]["text"],
             )
@@ -327,29 +341,17 @@ class Search:
     def __init__(
         self,
         query: str,
-        category: str | None,
+        category: str,
         cursor: str | None = None,
         *,
         proxy: str | None = None,
     ) -> None:
         self.cursor: str | None = cursor
         self.has_next: bool = bool(cursor)
-        self.results: list[User | Post] = []
+        self.results: list[SearchItem] = []
 
         with Api(proxy=proxy) as api:
-            filters: list[str] = []
-            search_type: str
-            match category:
-                case "posts":
-                    search_type = "POSTS_TAB"
-                case "recent_posts":
-                    search_type = "POSTS_TAB"
-                    filters.append('{"name":"recent_posts","args":""}')
-                case "people":
-                    search_type = "PEOPLE_TAB"
-                case _:
-                    search_type = "PAGES_TAB"
-
+            search_type, filters = SEARCH_TYPES[category]
             for _ in range(SEARCH_PAGING):
                 results_payload: JSON = api.SearchCometResultsPaginatedResultsQuery(
                     query,

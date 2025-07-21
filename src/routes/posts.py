@@ -41,7 +41,6 @@ def posts(author: str | None = None, token: str | None = None) -> str:  # pyrigh
     return render_template(
         "post.html.jinja",
         post=post.post,
-        comments=post.comments,
         cursor=post.cursor,
         has_next=post.has_next,
         title=post.post.text[:58],

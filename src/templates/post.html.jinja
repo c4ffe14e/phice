@@ -18,8 +18,8 @@
                 </select>
                 <button type="submit" class="icon_button">{{ icon("chevron-right") }}</button>
             </form>
-            {% if comments %}
-                {% for i in comments %}
+            {% if post.comments %}
+                {% for i in post.comments %}
                     {{ Comment(i, "reply" if i.is_reply else "") }}
                 {% endfor %}
             {% else %}

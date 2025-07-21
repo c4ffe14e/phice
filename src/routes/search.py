@@ -8,13 +8,14 @@ bp: Blueprint = Blueprint("search", __name__)
 
 @bp.route("/search")
 def search() -> str:
+    category: str | None = request.args.get("t")
     query: str | None = request.args.get("q")
-    if not query:
+    if not query or not category:
         abort(400)
 
     results = Search(
         query,
-        request.args.get("t"),
+        category,
         request.args.get("cursor"),
         proxy=get_proxy(),
     )

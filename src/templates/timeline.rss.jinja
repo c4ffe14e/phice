@@ -1,27 +1,27 @@
 <?xml version="1.0"?>
 <rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
     <channel>
-        <title>{{ info.name }} | Phice</title>
-        <link>{{ url_for("groups.groups", token=info.token, _external=true) if info.is_group else url_for("profile.profile", username=info.token, _external=true) }}</link>
-        <description>RSS feed for {{ info.name }}</description>
-        {% if info.picture_url -%}
+        <title>{{ feed.name }} | Phice</title>
+        <link>{{ url_for("groups.groups", token=feed.token, _external=true) if feed.is_group else url_for("profile.profile", username=feed.token, _external=true) }}</link>
+        <description>RSS feed for {{ feed.name }}</description>
+        {% if feed.picture_url -%}
             <image>
-                <url>{{ info.picture_url | proxy }}</url>
+                <url>{{ feed.picture_url | proxy }}</url>
                 <title></title>
                 <link>{{
                     url_for(
                         "groups.groups",
-                        token=info.token,
+                        token=feed.token,
                         _external=true,
-                    ) if info.is_group else url_for(
+                    ) if feed.is_group else url_for(
                         "profile.profile",
-                        username=info.token,
+                        username=feed.token,
                         _external=true,
                     )
                 }}</link>
             </image>
         {%- endif %}
-        {%- for i in posts %}
+        {%- for i in feed.posts %}
         <item>
             <title>{{ i.text[:60] }} | {{ i.author.name }}</title>
             <link>{{
