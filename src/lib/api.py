@@ -15,12 +15,15 @@ from .exceptions import ResponseError
 from .wrappers import http_client
 
 DATA_PATH: Path = Path(__file__).resolve().parent / "data"
-
 with (DATA_PATH / "doc_ids.json").open("r") as f:
     DOC_IDS: JSON = orjson.loads(f.read())
-
 with (DATA_PATH / "extra_variables.json").open("r") as f:
     EXTRA_VARIABLES: JSON = orjson.loads(f.read())
+
+
+ERROR_CODES: dict[str, int] = {
+    "rate_limit": 1675004,
+}
 
 
 class Api:

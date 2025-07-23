@@ -1,7 +1,7 @@
 from collections import defaultdict
 from urllib.parse import parse_qs, urlparse
 
-from .api import Api
+from .api import ERROR_CODES, Api
 from .datatypes import JSON, Album, Feed, Post, SearchItem, User
 from .exceptions import NotFoundError, ParsingError, ResponseError
 from .parsers import parse_album_item, parse_comment, parse_post, parse_search
@@ -50,9 +50,27 @@ class GetProfile:
                 raise NotFoundError(f"Profile {username} not found")
             user_id: str = route["rootView"]["props"]["userID"]
 
-            header: JSON = api.ProfileCometHeaderQuery(user_id)[0]["data"]["user"]["profile_header_renderer"]["user"]
-            side: JSON = api.ProfilePlusCometLoggedOutRootQuery(user_id)[-1]["data"]["profile_tile_sections"]["edges"][0]["node"]
-            posts_feed: list[JSON] = api.ProfileCometTimelineFeedQuery(user_id)
+            header_query: list[JSON]
+            side_query: list[JSON]
+            posts_query: list[JSON]
+            try:
+                header_query = api.ProfileCometHeaderQuery(user_id)
+                side_query = api.ProfilePlusCometLoggedOutRootQuery(user_id)
+                posts_query = api.ProfileCometTimelineFeedQuery(user_id)
+            except ResponseError as e:
+                if e.code != ERROR_CODES["rate_limit"]:
+                    raise
+                html_query = api.query_from_html(f"profile.php?id={user_id}")
+                if not html_query:
+                    raise
+
+                header_query = html_query["ProfileCometHeaderQuery"]
+                side_query = html_query["ProfilePlusCometLoggedOutRootQuery"]
+                posts_query = html_query["ProfileCometTimelineFeedQuery"]
+
+            header: JSON = header_query[0]["data"]["user"]["profile_header_renderer"]["user"]
+            side: JSON = side_query[-1]["data"]["profile_tile_sections"]["edges"][0]["node"]
+            posts_feed: list[JSON] = posts_query
 
             self.feed = Feed(
                 id=user_id,
@@ -122,6 +140,8 @@ class GetProfile:
                         if not self.has_next:
                             break
                 except ResponseError as e:
+                    if e.code != ERROR_CODES["rate_limit"]:
+                        raise
                     self.paging_error = e
                     self.cursor = None
                     self.has_next = False
@@ -214,6 +234,8 @@ class GetPost:
                                 if not self.has_next:
                                     break
                         except ResponseError as e:
+                            if e.code != ERROR_CODES["rate_limit"]:
+                                raise
                             self.paging_error = e
                             self.cursor = None
                             self.has_next = False
@@ -236,6 +258,8 @@ class GetPost:
                                 if not self.has_next:
                                     break
                         except ResponseError as e:
+                            if e.code != ERROR_CODES["rate_limit"]:
+                                raise
                             self.paging_error = e
                             self.cursor = None
                             self.has_next = False
@@ -356,6 +380,8 @@ class GetAlbum:
                         if not self.has_next:
                             break
                 except ResponseError as e:
+                    if e.code != ERROR_CODES["rate_limit"]:
+                        raise
                     self.paging_error = e
                     self.cursor = None
                     self.has_next = False
@@ -396,6 +422,8 @@ class Search:
                     if not self.has_next:
                         break
             except ResponseError as e:
+                if e.code != ERROR_CODES["rate_limit"]:
+                    raise
                 self.paging_error = e
                 self.cursor = None
                 self.has_next = False

@@ -35,8 +35,7 @@ def parse_reactions(edges: list[JSON]) -> Reactions:
     reactions: Reactions = Reactions()
     for i in edges:
         with suppress(KeyError):
-            reaction_name: str = REACTIONS_IDS[i["node"]["id"]]
-            setattr(reactions, reaction_name, i["reaction_count"])
+            setattr(reactions, REACTIONS_IDS[i["node"]["id"]], i["reaction_count"])
         reactions.total += i["reaction_count"]
 
     return reactions
