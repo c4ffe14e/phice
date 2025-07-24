@@ -30,5 +30,6 @@ def profile(username: str = "", _: str | None = None) -> str | tuple[str, dict[s
         feed=profile.feed,
         cursor=profile.cursor,
         has_next=profile.has_next,
+        rate_limited=profile.rate_limited,
         title=profile.feed.name,
     )

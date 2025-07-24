@@ -68,6 +68,9 @@
                 {% for i in feed.posts %}
                     {{ Post(i, expanded=request.cookies.get("expand") == "on") }}
                 {% endfor %}
+                {% if rate_limited %}
+                    <span class="centered card">Couldn't fetch rest of posts rate-limited.</span>
+                {% endif %}
                 {{ navigation_buttons() }}
             {% else %}
                 <span class="card centered">No posts.</span>

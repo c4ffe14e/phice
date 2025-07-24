@@ -25,5 +25,6 @@ def search() -> str:
         results=results.results,
         cursor=results.cursor,
         has_next=results.has_next,
-        title=query + " - Search",
+        rate_limited=results.rate_limited,
+        title=f"{query} - Search",
     )

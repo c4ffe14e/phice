@@ -23,5 +23,6 @@ def albums() -> str:
         album=album.album,
         cursor=album.cursor,
         has_next=album.has_next,
+        rate_limited=album.rate_limited,
         title=album.album.title,
     )
