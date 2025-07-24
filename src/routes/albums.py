@@ -19,7 +19,7 @@ def albums() -> str:
     )
 
     return render_template(
-        "album.html.jinja",
+        "albums.html.jinja",
         album=album.album,
         cursor=album.cursor,
         has_next=album.has_next,
