@@ -21,7 +21,7 @@ with (DATA_PATH / "extra_variables.json").open("r") as f:
     EXTRA_VARIABLES: JSON = orjson.loads(f.read())
 
 
-ERROR_CODES: dict[str, int] = {
+API_ERROR_CODES: dict[str, int] = {
     "rate_limit": 1675004,
 }
 

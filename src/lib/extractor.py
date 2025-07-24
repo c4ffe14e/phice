@@ -1,11 +1,11 @@
 from collections import defaultdict
 from urllib.parse import parse_qs, urlparse
 
-from .api import ERROR_CODES, Api
+from .api import API_ERROR_CODES, Api
 from .datatypes import JSON, Album, Feed, Post, SearchItem, User
 from .exceptions import NotFoundError, ParsingError, ResponseError
 from .parsers import parse_album_item, parse_comment, parse_post, parse_search
-from .utils import base64s, base64s_decode, urlbasename
+from .utils import base64s, base64s_decode, catch_rate_limit, urlbasename
 
 COMMENT_FILTERS: defaultdict[str, str] = defaultdict(
     lambda: "RANKED_FILTERED_INTENT_V1",
@@ -41,8 +41,8 @@ class GetProfile:
     ) -> None:
         self.cursor: str | None = cursor
         self.has_next: bool = bool(cursor)
+        self.rate_limited: bool = False
         self.feed: Feed
-        self.paging_error: ResponseError | None = None
 
         with Api(proxy=proxy) as api:
             route, route_type = api.route(username)
@@ -58,7 +58,7 @@ class GetProfile:
                 side_query = api.ProfilePlusCometLoggedOutRootQuery(user_id)
                 posts_query = api.ProfileCometTimelineFeedQuery(user_id)
             except ResponseError as e:
-                if e.code != ERROR_CODES["rate_limit"]:
+                if e.code != API_ERROR_CODES["rate_limit"]:
                     raise
                 html_query = api.query_from_html(f"profile.php?id={user_id}")
                 if not html_query:
@@ -127,7 +127,7 @@ class GetProfile:
                 else:
                     raise ParsingError("Couldn't find page_info")
             if self.has_next:
-                try:
+                with catch_rate_limit(self):
                     for _ in range(PROFILE_PAGING):
                         response: list[JSON] = api.ProfileCometTimelineFeedRefetchQuery(user_id, self.cursor)
                         rest: list[JSON] = [i for i in response[1:] if "ProfileCometTimelineFeed_user" in i.get("label", "")]
@@ -139,12 +139,6 @@ class GetProfile:
                         self.has_next = rest[-1]["data"]["page_info"]["has_next_page"]
                         if not self.has_next:
                             break
-                except ResponseError as e:
-                    if e.code != ERROR_CODES["rate_limit"]:
-                        raise
-                    self.paging_error = e
-                    self.cursor = None
-                    self.has_next = False
 
 
 class GetPost:
@@ -160,8 +154,8 @@ class GetPost:
         self.cursor: str | None = cursor
         self.has_next: bool = bool(cursor)
         self.focus: str | None = focus
+        self.rate_limited: bool = False
         self.post: Post
-        self.paging_error: ResponseError | None = None
 
         with Api(proxy=proxy) as api:
             route, route_type = api.route(token)
@@ -220,7 +214,7 @@ class GetPost:
                         self.cursor = replies["page_info"]["end_cursor"]
                         self.has_next = replies["page_info"]["has_next_page"]
                     if self.has_next:
-                        try:
+                        with catch_rate_limit(self):
                             for _ in range(COMMENT_PAGING):
                                 next_replies: JSON = api.Depth1CommentsListPaginationQuery(
                                     main_comment["feedback"]["id"],
@@ -233,19 +227,13 @@ class GetPost:
                                 self.has_next = next_replies["page_info"]["has_next_page"]
                                 if not self.has_next:
                                     break
-                        except ResponseError as e:
-                            if e.code != ERROR_CODES["rate_limit"]:
-                                raise
-                            self.paging_error = e
-                            self.cursor = None
-                            self.has_next = False
                 else:
                     if not self.cursor:
                         self.post.comments.extend(parse_comment(i["node"]) for i in comments_payload["edges"])
                         self.cursor = comments_payload["page_info"]["end_cursor"]
                         self.has_next = comments_payload["page_info"]["has_next_page"]
                     if self.has_next:
-                        try:
+                        with catch_rate_limit(self):
                             for _ in range(COMMENT_PAGING):
                                 next_comments: JSON = api.CommentsListComponentsPaginationQuery(
                                     self.post.feedback_id,
@@ -257,12 +245,6 @@ class GetPost:
                                 self.has_next = next_comments["page_info"]["has_next_page"]
                                 if not self.has_next:
                                     break
-                        except ResponseError as e:
-                            if e.code != ERROR_CODES["rate_limit"]:
-                                raise
-                            self.paging_error = e
-                            self.cursor = None
-                            self.has_next = False
 
 
 class GetGroup:
@@ -347,8 +329,8 @@ class GetAlbum:
     ) -> None:
         self.cursor: str | None = cursor
         self.has_next: bool = bool(cursor)
+        self.rate_limited: bool = False
         self.album: Album
-        self.paging_error: ResponseError | None = None
 
         with Api(proxy=proxy) as api:
             album: JSON | None = api.CometPhotoAlbumQuery(token)[0]["data"]["album"]
@@ -367,7 +349,7 @@ class GetAlbum:
                 self.cursor = album["media"]["page_info"]["end_cursor"]
                 self.has_next = album["media"]["page_info"]["has_next_page"]
             if self.has_next:
-                try:
+                with catch_rate_limit(self):
                     for _ in range(ALBUM_PAGING):
                         next_items: JSON = api.CometAlbumPhotoCollagePaginationQuery(
                             album["id"],
@@ -379,12 +361,6 @@ class GetAlbum:
                         self.has_next = next_items["page_info"]["has_next_page"]
                         if not self.has_next:
                             break
-                except ResponseError as e:
-                    if e.code != ERROR_CODES["rate_limit"]:
-                        raise
-                    self.paging_error = e
-                    self.cursor = None
-                    self.has_next = False
 
 
 class Search:
@@ -398,12 +374,12 @@ class Search:
     ) -> None:
         self.cursor: str | None = cursor
         self.has_next: bool = bool(cursor)
+        self.rate_limited: bool = False
         self.results: list[SearchItem] = []
-        self.paging_error: ResponseError | None = None
 
         with Api(proxy=proxy) as api:
             search_type, filters = SEARCH_TYPES[category]
-            try:
+            with catch_rate_limit(self):
                 for _ in range(SEARCH_PAGING):
                     results_payload: JSON = api.SearchCometResultsPaginatedResultsQuery(
                         query,
@@ -421,9 +397,3 @@ class Search:
                     self.has_next = results_payload["page_info"]["has_next_page"]
                     if not self.has_next:
                         break
-            except ResponseError as e:
-                if e.code != ERROR_CODES["rate_limit"]:
-                    raise
-                self.paging_error = e
-                self.cursor = None
-                self.has_next = False
