@@ -1,8 +1,7 @@
-import re
 from pathlib import Path
 from traceback import format_exception
 
-from flask import Blueprint, render_template
+from flask import Blueprint, current_app, render_template
 from werkzeug.exceptions import HTTPException, InternalServerError
 
 from ..lib.exceptions import NotFoundError, ResponseError
@@ -29,14 +28,8 @@ def error_handler(e: HTTPException | NotFoundError | ResponseError) -> tuple[str
             if e.code:
                 status_code = e.code
             message = e.description
-
             if isinstance(e, InternalServerError) and (og := e.original_exception) is not None:
-                tb = "".join(format_exception(og))
-                tb = re.sub(
-                    r'File "([^"]*)"',
-                    lambda m: f'File "{Path(m.group(1)).name}"',
-                    tb,
-                )
+                tb = "".join(format_exception(og)).replace(f"{Path(current_app.root_path).parent}/", "")
 
     return render_template(
         "error.html.jinja",
