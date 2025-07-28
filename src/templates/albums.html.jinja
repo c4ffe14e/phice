@@ -26,7 +26,7 @@
             </div>
         {% endfor %}
     </div>
-    {% if rate_limited %}
+    {% if scroll.rate_limited %}
         <span class="centered card">Couldn't fetch rest of items rate-limited.</span>
     {% endif %}
     {{ navigation_buttons() }}

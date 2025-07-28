@@ -4,7 +4,7 @@ from contextlib import contextmanager
 from urllib.parse import urlparse
 
 from .api import API_ERROR_CODES
-from .datatypes import Pageable
+from .datatypes import Scroll
 from .exceptions import ResponseError
 
 
@@ -21,7 +21,7 @@ def urlbasename(url: str) -> str:
 
 
 @contextmanager
-def catch_rate_limit(obj: Pageable) -> Generator[None]:
+def catch_rate_limit(obj: Scroll) -> Generator[None]:
     try:
         yield
     except ResponseError as e:

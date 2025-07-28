@@ -1,7 +1,7 @@
 from flask import Blueprint, abort, render_template, request
 
 from ..flask_utils import get_proxy
-from ..lib.extractor import GetPost
+from ..lib.extractor import get_post
 
 bp: Blueprint = Blueprint("posts", __name__)
 
@@ -30,7 +30,7 @@ def posts(author: str | None = None, token: str | None = None) -> str:  # pyrigh
     if not post_id:
         abort(400)
 
-    post = GetPost(
+    post, scroll = get_post(
         post_id,
         request.args.get("cursor"),
         request.args.get("comment_id"),
@@ -38,11 +38,4 @@ def posts(author: str | None = None, token: str | None = None) -> str:  # pyrigh
         proxy=get_proxy(),
     )
 
-    return render_template(
-        "posts.html.jinja",
-        post=post.post,
-        cursor=post.cursor,
-        has_next=post.has_next,
-        rate_limited=post.rate_limited,
-        title=post.post.text[:58],
-    )
+    return render_template("posts.html.jinja", post=post, scroll=scroll, title=post.text[:58])

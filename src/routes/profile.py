@@ -1,7 +1,7 @@
 from flask import Blueprint, abort, current_app, render_template, request
 
 from ..flask_utils import get_proxy
-from ..lib.extractor import GetProfile
+from ..lib.extractor import get_profile
 
 bp: Blueprint = Blueprint("profile", __name__)
 
@@ -14,22 +14,12 @@ def profile(username: str = "", _: str | None = None) -> str | tuple[str, dict[s
     if not token:
         abort(400)
 
-    profile = GetProfile(token, request.args.get("cursor"), proxy=get_proxy())
+    feed, scroll = get_profile(token, request.args.get("cursor"), proxy=get_proxy())
 
     if request.args.get("rss"):
         if not current_app.config["ENABLE_RSS"]:
             abort(403, "RSS feeds are disabled in this instance")
 
-        return render_template(
-            "timeline.rss.jinja",
-            feed=profile.feed,
-        ), {"content-type": "application/rss+xml"}
+        return render_template("timeline.rss.jinja", feed=feed), {"content-type": "application/rss+xml"}
 
-    return render_template(
-        "timeline.html.jinja",
-        feed=profile.feed,
-        cursor=profile.cursor,
-        has_next=profile.has_next,
-        rate_limited=profile.rate_limited,
-        title=profile.feed.name,
-    )
+    return render_template("timeline.html.jinja", feed=feed, scroll=scroll, title=feed.name)

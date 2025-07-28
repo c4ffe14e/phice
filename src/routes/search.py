@@ -1,7 +1,7 @@
 from flask import Blueprint, abort, render_template, request
 
 from ..flask_utils import get_proxy
-from ..lib.extractor import Search
+from ..lib.extractor import get_search
 
 bp: Blueprint = Blueprint("search", __name__)
 
@@ -13,18 +13,6 @@ def search() -> str:
     if not query or not category:
         abort(400)
 
-    results = Search(
-        query,
-        category,
-        request.args.get("cursor"),
-        proxy=get_proxy(),
-    )
+    results, scroll = get_search(query, category, request.args.get("cursor"), proxy=get_proxy())
 
-    return render_template(
-        "search.html.jinja",
-        results=results.results,
-        cursor=results.cursor,
-        has_next=results.has_next,
-        rate_limited=results.rate_limited,
-        title=f"{query} - Search",
-    )
+    return render_template("search.html.jinja", results=results, scroll=scroll, title=f"{query} - Search")

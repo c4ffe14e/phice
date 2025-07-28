@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Any, Protocol
+from typing import Any
 
 type JSON = dict[str, Any]
 
@@ -150,7 +150,11 @@ class Album:
 type SearchItem = User | Post
 
 
-class Pageable(Protocol):
-    cursor: str | None
-    has_next: bool
-    rate_limited: bool
+@dataclass(kw_only=True)
+class Scroll:
+    cursor: str | None = None
+    has_next: bool = False
+    rate_limited: bool = False
+
+    def __post_init__(self) -> None:
+        self.has_next = bool(self.cursor)
