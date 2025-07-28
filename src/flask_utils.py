@@ -1,41 +1,57 @@
 from contextlib import suppress
-from typing import Any, cast
+from typing import Any, cast, override
 
 from flask import current_app, request
 
 
-class GetSetting:
+class GetUserSetting:
     def __init__(self, name: str) -> None:
         defualt_value: Any = None
         with suppress(KeyError):
             defualt_value = cast("Any", current_app.config["DEFAULT_SETTINGS"][name])
-        self.__value: Any = request.cookies.get(name, defualt_value)
 
-    def as_bool(self) -> bool:
-        match self.__value:
-            case True | 1 | "on" | "true":
+        self._value: Any = request.cookies.get(name, defualt_value)
+
+    @override
+    def __str__(self) -> str:
+        return str(self._value)
+
+    def __int__(self) -> int:
+        ret: int = 0
+        with suppress(ValueError):
+            ret = int(self._value)
+
+        return ret
+
+    def __bool__(self) -> bool:
+        match self._value:
+            case True | 1 | "on" | "true" | "True":
                 return True
-            case False | 0 | "off" | "false":
-                return False
             case _:
                 return False
 
-    def as_str(self) -> str:
-        return str(self.__value)
+    @override
+    def __eq__(self, value: object, /) -> bool:
+        match value:
+            case str():
+                return str(self) == value
+            case int():
+                return int(self) == value
+            case bool():
+                return bool(self) == value
+            case _:
+                return False
 
-    def as_int(self) -> int:
-        ret: int = 0
-        with suppress(ValueError):
-            ret = int(self.__value)
-
-        return ret
+    @override
+    def __hash__(self) -> int:
+        return hash(self._value)
 
 
 def get_proxy() -> str | None:
     try:
         ret: Any = cast("Any", current_app.config["NETWORK"]["proxy"])
-        if not ret:
-            return None
-        return str(ret)
     except KeyError:
         return None
+    if not ret:
+        return None
+    return str(ret)

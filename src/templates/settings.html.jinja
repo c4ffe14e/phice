@@ -16,19 +16,19 @@
                 >Default</option>
                 <option
                     value="light"
-                    {{ "selected" if GetSetting("theme").as_str() == "light" }}
+                    {{ "selected" if GetUserSetting("theme") == "light" }}
                 >Light</option>
                 <option
                     value="black"
-                    {{ "selected" if GetSetting("theme").as_str() == "black" }}
+                    {{ "selected" if GetUserSetting("theme") == "black" }}
                 >Black</option>
                 <option
                     value="catppuccin_mocha"
-                    {{ "selected" if GetSetting("theme").as_str() == "catppuccin_mocha" }}
+                    {{ "selected" if GetUserSetting("theme") == "catppuccin_mocha" }}
                 >Catppuccin mocha</option>
                 <option
                     value="catppuccin_latte"
-                    {{ "selected" if GetSetting("theme").as_str() == "catppuccin_latte" }}
+                    {{ "selected" if GetUserSetting("theme") == "catppuccin_latte" }}
                 >Catppuccin latte</option>
             </select>
         </label>
@@ -37,32 +37,32 @@
             <select name="comments_sort">
                 <option
                     value="filtered"
-                    {{ "selected" if GetSetting("comments_sort").as_str() == "filtered" }}
+                    {{ "selected" if GetUserSetting("comments_sort") == "filtered" }}
                 >Most relevant</option>
                 <option
                     value="newest"
-                    {{ "selected" if GetSetting("comments_sort").as_str() == "newest" }}
+                    {{ "selected" if GetUserSetting("comments_sort") == "newest" }}
                 >Newest</option>
                 <option
                     value="all"
-                    {{ "selected" if GetSetting("comments_sort").as_str() == "all" }}
+                    {{ "selected" if GetUserSetting("comments_sort") == "all" }}
                 >All</option>
             </select>
         </label>
         <label class="settings_row">
             Proxy media
-            <input type="checkbox" name="proxy" {{ "checked" if GetSetting("proxy").as_bool() }} />
+            <input type="checkbox" name="proxy" {{ "checked" if GetUserSetting("proxy") }} />
         </label>
         <label class="settings_row">
             Expand posts
-            <input type="checkbox" name="expand" {{ "checked" if GetSetting("expand").as_bool() }} />
+            <input type="checkbox" name="expand" {{ "checked" if GetUserSetting("expand") }} />
         </label>
         <label class="settings_row">
             Time zone
             <input
                 type="number"
                 name="timezone"
-                value="{{ GetSetting("timezone").as_int() }}"
+                value="{{ GetUserSetting("timezone") | int }}"
                 min="-12"
                 max="14"
             />
