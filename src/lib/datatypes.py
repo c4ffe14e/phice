@@ -150,11 +150,12 @@ class Album:
 type SearchItem = User | Post
 
 
-@dataclass(kw_only=True)
+@dataclass
 class Scroll:
-    cursor: str | None = None
-    has_next: bool = False
+    cursor: str | None
+    has_next: bool | None = None
     rate_limited: bool = False
 
     def __post_init__(self) -> None:
-        self.has_next = bool(self.cursor)
+        if self.has_next is None:
+            self.has_next = bool(self.cursor)

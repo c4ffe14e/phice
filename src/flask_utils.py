@@ -4,7 +4,7 @@ from typing import Any, cast, override
 from flask import current_app, request
 
 
-class GetUserSetting:
+class UserSetting:
     def __init__(self, name: str) -> None:
         defualt_value: Any = None
         with suppress(KeyError):

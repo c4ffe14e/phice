@@ -11,7 +11,7 @@
                     <input type="hidden" name="comment_id" value="{{ request.args.comment_id }}" />
                 {% endif %}
                 <select name="sort">
-                    {% set sort = request.args.get("sort", GetUserSetting("comments_sort") | string)  %}
+                    {% set sort = request.args.get("sort", UserSetting("comments_sort") | string) %}
                     <option value="filtered">Most relevant</option>
                     <option value="newest" {{ "selected" if sort == "newest" }}>Newest</option>
                     <option value="all" {{ "selected" if sort == "all" }}>All</option>

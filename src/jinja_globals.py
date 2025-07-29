@@ -1,7 +1,7 @@
 from collections.abc import Callable
 from typing import Any
 
-from .flask_utils import GetUserSetting
+from .flask_utils import UserSetting
 
 
 def types(obj: object) -> str:
@@ -10,5 +10,5 @@ def types(obj: object) -> str:
 
 GLOBALS: dict[str, Callable[..., Any]] = {
     "type": types,
-    "GetUserSetting": GetUserSetting,
+    "UserSetting": UserSetting,
 }

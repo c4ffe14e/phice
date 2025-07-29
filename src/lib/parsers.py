@@ -176,7 +176,7 @@ def parse_post(node: JSON, *, shared: bool = False) -> Post:
 
         inform_treatment: JSON | None = feedback_container["story"]["inform_treatment_for_messaging"]
         if inform_treatment and inform_treatment["messaging_inform_treatment_name"] == "ai_generated_content":
-            post.badges.append("AI")
+            post.badges.append("AI Slop")
 
     if not shared and node["attached_story"]:
         post.shared_post = parse_post(node, shared=True)

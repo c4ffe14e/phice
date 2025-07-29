@@ -33,7 +33,7 @@ def error_handler(e: HTTPException | NotFoundError | ResponseError) -> tuple[str
 
     return render_template(
         "error.html.jinja",
-        title="Error",
+        title=f"Error {status_code}",
         status_code=status_code,
         traceback=tb,
         message=message,

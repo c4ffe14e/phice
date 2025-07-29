@@ -1,6 +1,6 @@
 from flask import Blueprint, abort, render_template, request
 
-from ..flask_utils import GetUserSetting, get_proxy
+from ..flask_utils import UserSetting, get_proxy
 from ..lib.extractor import get_post
 
 bp: Blueprint = Blueprint("posts", __name__)
@@ -34,7 +34,7 @@ def posts(author: str | None = None, token: str | None = None) -> str:  # pyrigh
         post_id,
         request.args.get("cursor"),
         request.args.get("comment_id"),
-        request.args.get("sort", str(GetUserSetting("comments_sort"))),
+        request.args.get("sort", str(UserSetting("comments_sort"))),
         proxy=get_proxy(),
     )
 

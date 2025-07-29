@@ -32,7 +32,7 @@ SEARCH_PAGING: int = 3
 
 
 def get_profile(username: str, cursor: str | None = None, *, proxy: str | None = None) -> tuple[Feed, Scroll]:
-    scroll: Scroll = Scroll(cursor=cursor)
+    scroll: Scroll = Scroll(cursor)
     feed: Feed
     with Api(proxy=proxy) as api:
         route, route_type = api.route(username)
@@ -141,7 +141,7 @@ def get_post(
     *,
     proxy: str | None = None,
 ) -> tuple[Post, Scroll]:
-    scroll: Scroll = Scroll(cursor=cursor)
+    scroll: Scroll = Scroll(cursor)
     post: Post
     with Api(proxy=proxy) as api:
         route, route_type = api.route(token)
@@ -236,7 +236,7 @@ def get_post(
 
 
 def get_group(token: str, cursor: str | None = None, *, proxy: str | None = None) -> tuple[Feed, Scroll]:
-    scroll: Scroll = Scroll(cursor=cursor)
+    scroll: Scroll = Scroll(cursor)
     feed: Feed
     with Api(proxy=proxy) as api:
         route, route_type = api.route(f"groups/{token}")
@@ -301,7 +301,7 @@ def get_group(token: str, cursor: str | None = None, *, proxy: str | None = None
 
 
 def get_album(token: str, cursor: str | None = None, *, proxy: str | None = None) -> tuple[Album, Scroll]:
-    scroll: Scroll = Scroll(cursor=cursor)
+    scroll: Scroll = Scroll(cursor)
     album: Album
     with Api(proxy=proxy) as api:
         album_data: JSON | None = api.CometPhotoAlbumQuery(token)[0]["data"]["album"]
@@ -343,7 +343,7 @@ def get_search(
     *,
     proxy: str | None = None,
 ) -> tuple[list[SearchItem], Scroll]:
-    scroll: Scroll = Scroll(cursor=cursor)
+    scroll: Scroll = Scroll(cursor)
     results: list[SearchItem] = []
     with Api(proxy=proxy) as api:
         search_type, filters = SEARCH_TYPES[category]
