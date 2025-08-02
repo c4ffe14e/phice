@@ -21,9 +21,16 @@ def http_client(
     }
     if headers is not None:
         client_headers.update(headers)
+    client_cookies: dict[str, str] = {
+        "datr": "emeOaIys3XO9UYWmzznuIGOI",
+        "dpr": "2",
+        "sb": "emeOaFqK-PSnP6OJi9GHlPaN",
+        "wd": "1920x1080",
+    }
 
     return httpx.Client(
         headers=client_headers,
+        cookies=client_cookies,
         proxy=proxy,
         timeout=15,
         http2=True,
