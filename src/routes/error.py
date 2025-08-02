@@ -2,6 +2,7 @@ from pathlib import Path
 from traceback import format_exception
 
 from flask import Blueprint, current_app, render_template
+from flask.typing import ResponseReturnValue
 from werkzeug.exceptions import HTTPException, InternalServerError
 
 from ..lib.exceptions import NotFoundError, ResponseError
@@ -12,7 +13,7 @@ bp: Blueprint = Blueprint("error_handlers", __name__)
 @bp.app_errorhandler(NotFoundError)
 @bp.app_errorhandler(ResponseError)
 @bp.app_errorhandler(HTTPException)
-def error_handler(e: HTTPException | NotFoundError | ResponseError) -> tuple[str, int]:
+def error_handler(e: HTTPException | NotFoundError | ResponseError) -> ResponseReturnValue:
     status_code: int = 500
     message: str | None = None
     tb: str | None = None

@@ -1,4 +1,5 @@
 from flask import Blueprint, abort, current_app, render_template, request
+from flask.typing import ResponseReturnValue
 
 from ..flask_utils import get_proxy
 from ..lib.extractor import get_profile
@@ -9,7 +10,7 @@ bp: Blueprint = Blueprint("profile", __name__)
 @bp.route("/profile.php", endpoint="profile_php")
 @bp.route("/people/<string:_>/<string:username>")
 @bp.route("/<string:username>")
-def profile(username: str = "", _: str | None = None) -> str | tuple[str, dict[str, str]]:
+def profile(username: str = "", _: str | None = None) -> ResponseReturnValue:
     token: str | None = request.args.get("id") if request.endpoint == "profile.profile_php" else username
     if not token:
         abort(400)

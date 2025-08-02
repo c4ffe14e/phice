@@ -1,4 +1,5 @@
 from flask import Blueprint, abort, render_template, request
+from flask.typing import ResponseReturnValue
 
 from ..flask_utils import get_proxy
 from ..lib.extractor import get_search
@@ -7,7 +8,7 @@ bp: Blueprint = Blueprint("search", __name__)
 
 
 @bp.route("/search")
-def search() -> str:
+def search() -> ResponseReturnValue:
     category: str | None = request.args.get("t")
     query: str | None = request.args.get("q")
     if not query or not category:

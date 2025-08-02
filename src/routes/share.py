@@ -1,12 +1,13 @@
 from contextlib import suppress
 from typing import TYPE_CHECKING
 
+from flask.typing import ResponseReturnValue
+
 if TYPE_CHECKING:
     import httpx
 from urllib.parse import ParseResult, parse_qs, urlencode, urlparse
 
 from flask import Blueprint, abort, redirect
-from werkzeug import Response
 
 from ..flask_utils import get_proxy
 from ..lib.wrappers import http_client
@@ -15,7 +16,7 @@ bp: Blueprint = Blueprint("share", __name__)
 
 
 @bp.route("/share/<path:path>")
-def share(path: str) -> Response:
+def share(path: str) -> ResponseReturnValue:
     with http_client(proxy=get_proxy()) as client:
         r: httpx.Response = client.get(f"https://www.facebook.com/share/{path}", follow_redirects=False)
 

@@ -1,4 +1,5 @@
 from flask import Blueprint, abort, render_template, request
+from flask.typing import ResponseReturnValue
 
 from ..flask_utils import UserSetting, get_proxy
 from ..lib.extractor import get_post
@@ -16,7 +17,7 @@ bp: Blueprint = Blueprint("posts", __name__)
 @bp.route("/permalink.php", endpoint="permalink")
 @bp.route("/story.php", endpoint="story")
 @bp.route("/watch", endpoint="watch")
-def posts(author: str | None = None, token: str | None = None) -> str:  # pyright: ignore[reportUnusedParameter] # noqa: ARG001
+def posts(author: str | None = None, token: str | None = None) -> ResponseReturnValue:  # pyright: ignore[reportUnusedParameter] # noqa: ARG001
     post_id: str | None = None
     match request.endpoint:
         case "posts.photo":

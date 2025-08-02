@@ -1,4 +1,5 @@
 from flask import Blueprint, abort, current_app, render_template, request
+from flask.typing import ResponseReturnValue
 
 from ..flask_utils import get_proxy
 from ..lib.extractor import get_group
@@ -7,7 +8,7 @@ bp: Blueprint = Blueprint("groups", __name__)
 
 
 @bp.route("/groups/<string:token>")
-def groups(token: str) -> str | tuple[str, dict[str, str]]:
+def groups(token: str) -> ResponseReturnValue:
     feed, scroll = get_group(token, request.args.get("cursor"), proxy=get_proxy())
 
     if request.args.get("rss"):

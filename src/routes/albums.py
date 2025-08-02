@@ -1,4 +1,5 @@
 from flask import Blueprint, abort, render_template, request
+from flask.typing import ResponseReturnValue
 
 from ..flask_utils import get_proxy
 from ..lib.extractor import get_album
@@ -7,7 +8,7 @@ bp: Blueprint = Blueprint("albums", __name__)
 
 
 @bp.route("/media/set")
-def albums() -> str:
+def albums() -> ResponseReturnValue:
     token: str | None = request.args.get("set")
     if not token:
         abort(400)

@@ -2,8 +2,8 @@ from collections.abc import Generator
 from contextlib import suppress
 
 import httpx
-from flask import Blueprint, make_response, request
-from werkzeug import Response
+from flask import Blueprint, Response, make_response, request
+from flask.typing import ResponseReturnValue
 
 from ..flask_utils import get_proxy
 from ..lib.wrappers import http_client
@@ -13,7 +13,7 @@ bp: Blueprint = Blueprint("cdn", __name__)
 
 @bp.route("/cdn_external/<path:path>", endpoint="cdn_external")
 @bp.route("/cdn/<path:path>", endpoint="cdn")
-def cdn(path: str) -> Response:
+def cdn(path: str) -> ResponseReturnValue:
     cdn_url: str = "https://scontent.xx.fbcdn.net" if request.endpoint == "cdn.cdn" else "https://external.fmji4-1.fna.fbcdn.net"
     cdn_headers: dict[str, str] = {}
     if rrange := request.headers.get("range"):

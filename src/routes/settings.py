@@ -1,5 +1,5 @@
-from flask import Blueprint, make_response, redirect, render_template, request, url_for
-from werkzeug import Response
+from flask import Blueprint, Response, make_response, redirect, render_template, request, url_for
+from flask.typing import ResponseReturnValue
 
 bp: Blueprint = Blueprint("settings", __name__)
 
@@ -8,7 +8,7 @@ OPTIONS: list[str] = ["theme", "comments_sort", "proxy", "expand", "timezone"]
 
 
 @bp.route("/settings", methods=["GET", "POST"])
-def settings() -> Response | str:
+def settings() -> ResponseReturnValue:
     if request.method == "POST":
         response: Response = make_response(redirect(request.form.get("referrer", url_for("settings.settings"))))
         if request.form.get("reset"):
