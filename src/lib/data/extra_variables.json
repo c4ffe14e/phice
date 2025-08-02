@@ -1,6 +1,6 @@
 {
-  "__relay_internal__pv__GHLShouldChangeSponsoredDataFieldNamerelayprovider": 0,
   "__relay_internal__pv__GHLShouldChangeAdIdFieldNamerelayprovider": 0,
+  "__relay_internal__pv__GHLShouldChangeSponsoredDataFieldNamerelayprovider": 0,
   "__relay_internal__pv__IsWorkUserrelayprovider": 0,
   "__relay_internal__pv__FBReels_deprecate_short_form_video_context_gkrelayprovider": 0,
   "__relay_internal__pv__FeedDeepDiveTopicPillThreadViewEnabledrelayprovider": 0,
@@ -14,6 +14,10 @@
   "__relay_internal__pv__CometUFI_dedicated_comment_routable_dialog_gkrelayprovider": 0,
   "__relay_internal__pv__StoriesArmadilloReplyEnabledrelayprovider": 0,
   "__relay_internal__pv__FBReelsIFUTileContent_reelsIFUPlayOnHoverrelayprovider": 0,
+  "__relay_internal__pv__FBUnifiedVideo_enable_reel_music_metadatarelayprovider": 0,
+  "__relay_internal__pv__FBUnifiedVideo_defer_thumbnailrelayprovider": 0,
+  "__relay_internal__pv__FBUnifiedVideoMediaFooter_comet_enable_reels_ads_gkrelayprovider": 0,
+  "__relay_internal__pv__FBUnifiedVideoMediaFooter_community_notes_reels_fb_web_unified_gkrelayprovider": 0,
   "__relay_internal__pv__GroupsCometGroupChatLazyLoadLastMessageSnippetrelayprovider": 0,
   "__relay_internal__pv__GroupsCometLazyLoadFeaturedSectionrelayprovider": 0
 }

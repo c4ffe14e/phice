@@ -15,7 +15,7 @@ QUERY_NAMES: list[str] = [
     "CommentListComponentsRootQuery",
     "CommentsListComponentsPaginationQuery",
     "Depth1CommentsListPaginationQuery",
-    "FBReelsRootWithEntrypointQuery",
+    "FBUnifiedVideoRootWithEntrypointQuery",
     "GroupsCometDiscussionLayoutRootQuery",
     "GroupsCometFeedRegularStoriesPaginationQuery",
     "ProfileCometHeaderQuery",
@@ -27,7 +27,8 @@ QUERY_NAMES: list[str] = [
 URLS: list[str] = [
     "https://www.facebook.com/facebook",
     "https://www.facebook.com/facebook/posts/1193563419482343",
-    "https://www.facebook.com/groups/python/",
+    "https://www.facebook.com/reel/3894716004079577",
+    "https://www.facebook.com/groups/python",
     "https://www.facebook.com/media/set/?set=a.10152716010956729",
     "https://www.facebook.com/watch/search/?q=python",
 ]
