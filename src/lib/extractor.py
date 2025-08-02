@@ -1,11 +1,13 @@
 from collections import defaultdict
 from urllib.parse import parse_qs, urlparse
 
+import orjson
+
 from .api import API_ERROR_CODES, Api
 from .datatypes import JSON, Album, Feed, Post, Scroll, SearchItem, User
 from .exceptions import NotFoundError, ParsingError, ResponseError
 from .parsers import parse_album_item, parse_comment, parse_post, parse_search
-from .utils import base64s, base64s_decode, catch_rate_limit, urlbasename
+from .utils import base64s, catch_rate_limit, urlbasename
 
 COMMENT_FILTERS: defaultdict[str, str] = defaultdict(
     lambda: "RANKED_FILTERED_INTENT_V1",
@@ -92,8 +94,9 @@ def get_profile(username: str, cursor: str | None = None, *, proxy: str | None =
 
         if side["profile_tile_section_type"] == "INTRO":
             for i in side["profile_tile_views"]["nodes"][1]["view_style_renderer"]["view"]["profile_tile_items"]["nodes"]:
-                context: JSON = i["node"]["timeline_context_item"]["renderer"]["context_item"]
                 item: dict[str, str | None] = {"text": None, "url": None, "type": None}
+
+                context: JSON = i["node"]["timeline_context_item"]["renderer"]["context_item"]
                 item["text"] = context["title"]["text"]
                 if context.get("subtitle"):
                     item["text"] += f" {context['subtitle']['text']}"
@@ -104,6 +107,7 @@ def get_profile(username: str, cursor: str | None = None, *, proxy: str | None =
                     else:
                         item["url"] = url
                 item["type"] = i["node"]["timeline_context_item"]["timeline_context_list_item_type"][11:].lower()
+
                 feed.info.append(item)
 
         if not scroll.cursor:
@@ -163,8 +167,8 @@ def get_post(
                 case "photos":
                     photo: JSON | None = api.CometPhotoRootContentQuery(token)[0]["data"]["currMedia"]
                     if photo:
-                        user_id: str = base64s_decode(photo["container_story"]["id"]).split(":")[1]
-                        post_id = base64s(f"S:{user_id}:VK:{photo['id']}")
+                        user_id: str = orjson.loads(photo["creation_story"]["tracking"])["actrs"]
+                        post_id = base64s(f"S:_I{user_id}:VK:{photo['id']}")
                 case _:
                     pass
         if post_id is None:
