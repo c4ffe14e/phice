@@ -209,7 +209,7 @@ def get_post(
                             next_replies: JSON = api.Depth1CommentsListPaginationQuery(
                                 main_comment["feedback"]["id"],
                                 main_comment["feedback"]["expansion_info"]["expansion_token"],
-                                cursor,
+                                scroll.cursor,
                             )[0]["data"]["node"]["replies_connection"]
 
                             post.comments.extend(parse_comment(i["node"]) for i in next_replies["edges"])
@@ -328,7 +328,7 @@ def get_album(token: str, cursor: str | None = None, *, proxy: str | None = None
                 for _ in range(ALBUM_PAGING):
                     next_items: JSON = api.CometAlbumPhotoCollagePaginationQuery(
                         album_data["id"],
-                        cursor,
+                        scroll.cursor,
                     )[0]["data"]["node"]["media"]
 
                     album.items.extend(parse_album_item(i["node"]) for i in next_items["edges"])
@@ -356,7 +356,7 @@ def get_search(
                 results_payload: JSON = api.SearchCometResultsPaginatedResultsQuery(
                     query,
                     search_type,
-                    cursor,
+                    scroll.cursor,
                     filters,
                 )[0]["data"]["serpResponse"]["results"]
 
