@@ -7,5 +7,5 @@ wheels/
 .venv
 uv.lock
 
-config.json
+config.toml
 notes.txt

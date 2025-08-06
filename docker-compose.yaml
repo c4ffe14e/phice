@@ -6,5 +6,5 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      - "./config.json:/src/phice/config.json:ro"
+      - "./config.toml:/src/phice/config.toml:ro"
     restart: unless-stopped

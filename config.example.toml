@@ -1,0 +1,9 @@
+ENABLE_RSS = true
+PROXY = ""
+
+[DEFAULT_SETTINGS]
+theme = "default"
+comments_sort = "filtered"
+proxy = true
+expand = false
+timezone = 0

@@ -49,7 +49,7 @@ class UserSetting:
 
 def get_proxy() -> str | None:
     try:
-        ret: Any = cast("Any", current_app.config["NETWORK"]["proxy"])
+        ret: Any = cast("Any", current_app.config["PROXY"])
     except KeyError:
         return None
     if not ret:
