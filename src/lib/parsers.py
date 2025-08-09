@@ -300,6 +300,19 @@ def parse_post(node: JSON, *, shared: bool = False) -> Post:
                         options=options,
                     )
                 )
+            case "FBReels":
+                reel: JSON = attachment["style_infos"][0]["fb_shorts_story"]["short_form_video_context"]
+                reel_url: str = (
+                    reel["playback_video"]["videoDeliveryLegacyFields"]["browser_native_hd_url"]
+                    or reel["playback_video"]["videoDeliveryLegacyFields"]["browser_native_sd_url"]
+                )
+                post.attachments.append(
+                    Video(
+                        id=reel["playback_video"]["id"],
+                        url=reel_url,
+                        owner_id=reel["video_owner"]["id"],
+                    )
+                )
             case _:
                 post.attachments.append(Unsupported())
     post.text = "\n".join(text)
