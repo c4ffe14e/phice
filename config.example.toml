@@ -1,7 +1,8 @@
-ENABLE_RSS = true
-PROXY = ""
+[phice]
+enable_rss = true
+proxy = ""
 
-[DEFAULT_SETTINGS]
+[default_user_settings]
 theme = "default"
 comments_sort = "filtered"
 proxy = true

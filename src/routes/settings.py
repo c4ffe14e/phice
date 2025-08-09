@@ -1,10 +1,14 @@
+from dataclasses import fields
+
 from flask import Blueprint, Response, make_response, redirect, render_template, request, url_for
 from flask.typing import ResponseReturnValue
+
+from ..settings import UserSettings
 
 bp: Blueprint = Blueprint("settings", __name__)
 
 COOKIE_MAX_AGE: int = 34560000  # 400 days
-OPTIONS: list[str] = ["theme", "comments_sort", "proxy", "expand", "timezone"]
+OPTIONS: list[str] = [i.name for i in fields(UserSettings)]
 
 
 @bp.route("/settings", methods=["GET", "POST"])

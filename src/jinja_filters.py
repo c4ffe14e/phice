@@ -5,7 +5,7 @@ from urllib.parse import ParseResult, urlparse
 
 from flask import url_for
 
-from .flask_utils import UserSetting
+from .flask_utils import get_user_settings
 
 
 def _proxy_sub(m: re.Match[str]) -> str:
@@ -19,7 +19,7 @@ def _proxy_sub(m: re.Match[str]) -> str:
 
 
 def proxy(s: str) -> str:
-    if UserSetting("proxy"):
+    if get_user_settings().proxy:
         return re.sub(r"https?://[^/]*.fbcdn.net/[^ ]*", _proxy_sub, s)
     return s
 
@@ -48,7 +48,7 @@ def format_time(timestamp: str | float) -> str:
 
 def format_time_full(timestamp: str | float) -> str:
     time: float = float(timestamp)
-    offset: int = int(UserSetting("timezone"))
+    offset: int = get_user_settings().timezone
     time += offset * 60 * 60
 
     return datetime.fromtimestamp(time, tz=UTC).strftime(f"%Y/%m/%d - %I:%M:%S %p UTC{offset:+}")

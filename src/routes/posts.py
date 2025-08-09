@@ -1,7 +1,7 @@
 from flask import Blueprint, abort, render_template, request
 from flask.typing import ResponseReturnValue
 
-from ..flask_utils import UserSetting, get_proxy
+from ..flask_utils import get_config, get_user_settings
 from ..lib.extractor import get_post
 
 bp: Blueprint = Blueprint("posts", __name__)
@@ -35,8 +35,8 @@ def posts(author: str | None = None, token: str | None = None) -> ResponseReturn
         post_id,
         request.args.get("cursor"),
         request.args.get("comment_id"),
-        request.args.get("sort", str(UserSetting("comments_sort"))),
-        proxy=get_proxy(),
+        request.args.get("sort", get_user_settings().comments_sort),
+        proxy=get_config().proxy,
     )
 
     return render_template("posts.html.jinja", post=post, scroll=scroll, title=post.text[:58])

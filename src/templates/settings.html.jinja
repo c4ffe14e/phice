@@ -11,58 +11,37 @@
         <label class="settings_row">
             Theme
             <select name="theme">
-                <option
-                    value="default"
-                >Default</option>
-                <option
-                    value="light"
-                    {{ "selected" if UserSetting("theme") == "light" }}
-                >Light</option>
-                <option
-                    value="black"
-                    {{ "selected" if UserSetting("theme") == "black" }}
-                >Black</option>
-                <option
-                    value="catppuccin_mocha"
-                    {{ "selected" if UserSetting("theme") == "catppuccin_mocha" }}
+                <option value="default">Default</option>
+                <option value="light" {{ "selected" if get_user_settings().theme == "light" }}>Light</option>
+                <option value="black" {{ "selected" if get_user_settings().theme == "black" }}>Black</option>
+                <option value="catppuccin_mocha" {{ "selected" if get_user_settings().theme == "catppuccin_mocha" }}
                 >Catppuccin mocha</option>
-                <option
-                    value="catppuccin_latte"
-                    {{ "selected" if UserSetting("theme") == "catppuccin_latte" }}
+                <option value="catppuccin_latte" {{ "selected" if get_user_settings().theme == "catppuccin_latte" }}
                 >Catppuccin latte</option>
             </select>
         </label>
         <label class="settings_row">
             Default comments sort
             <select name="comments_sort">
-                <option
-                    value="filtered"
-                    {{ "selected" if UserSetting("comments_sort") == "filtered" }}
-                >Most relevant</option>
-                <option
-                    value="newest"
-                    {{ "selected" if UserSetting("comments_sort") == "newest" }}
-                >Newest</option>
-                <option
-                    value="all"
-                    {{ "selected" if UserSetting("comments_sort") == "all" }}
-                >All</option>
+                <option value="filtered" {{ "selected" if get_user_settings().comments_sort == "filtered" }}>Most relevant</option>
+                <option value="newest" {{ "selected" if get_user_settings().comments_sort == "newest" }}>Newest</option>
+                <option value="all" {{ "selected" if get_user_settings().comments_sort == "all" }}>All</option>
             </select>
         </label>
         <label class="settings_row">
             Proxy media
-            <input type="checkbox" name="proxy" {{ "checked" if UserSetting("proxy") }} />
+            <input type="checkbox" name="proxy" {{ "checked" if get_user_settings().proxy }} />
         </label>
         <label class="settings_row">
             Expand posts
-            <input type="checkbox" name="expand" {{ "checked" if UserSetting("expand") }} />
+            <input type="checkbox" name="expand" {{ "checked" if get_user_settings().expand }} />
         </label>
         <label class="settings_row">
             Time zone
             <input
                 type="number"
                 name="timezone"
-                value="{{ UserSetting("timezone") | int }}"
+                value="{{ get_user_settings().timezone }}"
                 min="-12"
                 max="14"
             />

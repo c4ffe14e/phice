@@ -1,7 +1,8 @@
 from flask import Blueprint, abort, render_template, request
 from flask.typing import ResponseReturnValue
 
-from ..flask_utils import get_proxy
+from src.flask_utils import get_config
+
 from ..lib.extractor import get_album
 
 bp: Blueprint = Blueprint("albums", __name__)
@@ -13,6 +14,6 @@ def albums() -> ResponseReturnValue:
     if not token:
         abort(400)
 
-    album, scroll = get_album(token, request.args.get("cursor"), proxy=get_proxy())
+    album, scroll = get_album(token, request.args.get("cursor"), proxy=get_config().proxy)
 
     return render_template("albums.html.jinja", album=album, scroll=scroll, title=album.title)

@@ -27,11 +27,12 @@ def http_client(
         "sb": "emeOaFqK-PSnP6OJi9GHlPaN",
         "wd": "1920x1080",
     }
+    client_proxy: str | None = proxy or None
 
     return httpx.Client(
         headers=client_headers,
         cookies=client_cookies,
-        proxy=proxy,
+        proxy=client_proxy,
         timeout=15,
         http2=True,
         follow_redirects=follow_redirects,

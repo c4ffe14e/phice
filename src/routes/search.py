@@ -1,7 +1,7 @@
 from flask import Blueprint, abort, render_template, request
 from flask.typing import ResponseReturnValue
 
-from ..flask_utils import get_proxy
+from ..flask_utils import get_config
 from ..lib.extractor import get_search
 
 bp: Blueprint = Blueprint("search", __name__)
@@ -14,6 +14,6 @@ def search() -> ResponseReturnValue:
     if not query or not category:
         abort(400)
 
-    results, scroll = get_search(query, category, request.args.get("cursor"), proxy=get_proxy())
+    results, scroll = get_search(query, category, request.args.get("cursor"), proxy=get_config().proxy)
 
     return render_template("search.html.jinja", results=results, scroll=scroll, title=f"{query} - Search")

@@ -23,8 +23,8 @@
         <meta property="og:url" content="{{ request.base_url }}" />
         <meta property="og:description" content="A lightweight privacy-friendly alternative front-end for Facebook" />
         <meta property="og:site_name" content="Phice" />
-        {% if config["ENABLE_RSS"] and request.endpoint in ("profile.profile", "groups.groups") %}
-            <link rel="alternate" type="application/rss+xml" href="?rss=1" title="RSS Feed">
+        {% if get_config().enable_rss and request.endpoint in ("profile.profile", "groups.groups") %}
+            <link rel="alternate" type="application/rss+xml" href="?rss=1" title="RSS Feed" />
         {% endif %}
         {% block head %}{% endblock head %}
     </head>
@@ -36,7 +36,7 @@
             </a>
             <div id="header_buttons">
                 <a href="{{ url_for('home.home') }}" title="Search">{{ icon("search") }}</a>
-                {% if config.get("ENABLE_RSS") and request.endpoint in ("profile.profile", "groups.groups") %}
+                {% if get_config().enable_rss and request.endpoint in ("profile.profile", "groups.groups") %}
                     <a href="?rss=1" title="RSS Feed">{{ icon("rss") }}</a>
                 {% endif %}
                 <a href="{{ 'https://facebook.com' + request.full_path }}" title="View on Facebook">{{ icon("facebook") }}</a>

@@ -5,7 +5,8 @@ import httpx
 from flask import Blueprint, Response, make_response, request
 from flask.typing import ResponseReturnValue
 
-from ..flask_utils import get_proxy
+from src.flask_utils import get_config
+
 from ..lib.wrappers import http_client
 
 bp: Blueprint = Blueprint("cdn", __name__)
@@ -19,7 +20,7 @@ def cdn(path: str) -> ResponseReturnValue:
     if rrange := request.headers.get("range"):
         cdn_headers["range"] = rrange
 
-    client: httpx.Client = http_client(headers=cdn_headers, proxy=get_proxy())
+    client: httpx.Client = http_client(headers=cdn_headers, proxy=get_config().proxy)
     cdn_request: httpx.Request = client.build_request("GET", f"{cdn_url}/{path}", params=request.query_string)
     cdn_response: httpx.Response = client.send(cdn_request, stream=True)
 
