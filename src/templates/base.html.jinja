@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        {% set theme = request.cookies.get("theme") %}
+        {% set theme = get_user_settings().theme %}
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>{{ title + " | " if title }}Phice</title>
