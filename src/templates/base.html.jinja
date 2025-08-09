@@ -2,19 +2,13 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        {% set theme = get_user_settings().theme %}
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>{{ title + " | " if title }}Phice</title>
         <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
-        {% if theme == "light" %}
-            <link rel="stylesheet" href="{{ url_for('static', filename='themes/light.css') }}" />
-        {% elif theme == "black" %}
-            <link rel="stylesheet" href="{{ url_for('static', filename='themes/black.css') }}" />
-        {% elif theme == "catppuccin_mocha" %}
-            <link rel="stylesheet" href="{{ url_for('static', filename='themes/catppuccin_mocha.css') }}" />
-        {% elif theme == "catppuccin_latte" %}
-            <link rel="stylesheet" href="{{ url_for('static', filename='themes/catppuccin_latte.css') }}" />
+        {% set theme = get_user_settings().theme %}
+        {% if theme in THEMES %}
+            <link rel="stylesheet" href="{{ url_for('static', filename='themes/{}.css'.format(theme)) }}" />
         {% endif %}
         <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}" />
         <meta property="og:title" content="{{ title }}" />

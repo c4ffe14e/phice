@@ -11,13 +11,9 @@
         <label class="settings_row">
             Theme
             <select name="theme">
-                <option value="default">Default</option>
-                <option value="light" {{ "selected" if get_user_settings().theme == "light" }}>Light</option>
-                <option value="black" {{ "selected" if get_user_settings().theme == "black" }}>Black</option>
-                <option value="catppuccin_mocha" {{ "selected" if get_user_settings().theme == "catppuccin_mocha" }}
-                >Catppuccin mocha</option>
-                <option value="catppuccin_latte" {{ "selected" if get_user_settings().theme == "catppuccin_latte" }}
-                >Catppuccin latte</option>
+                {% for v, n in THEMES %}
+                    <option value="{{ v }}" {{ "selected" if get_user_settings().theme == v }}>{{ n }}</option>
+                {% endfor %}
             </select>
         </label>
         <label class="settings_row">
