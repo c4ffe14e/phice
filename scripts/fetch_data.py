@@ -23,6 +23,7 @@ QUERY_NAMES: list[str] = [
     "ProfileCometTimelineFeedRefetchQuery",
     "ProfilePlusCometLoggedOutRootQuery",
     "SearchCometResultsPaginatedResultsQuery",
+    "CometFeedStoryMenuQuery",
 ]
 URLS: list[str] = [
     "https://www.facebook.com/facebook",
@@ -71,7 +72,7 @@ def main() -> int:
                         QUERY_NAMES.remove(name)
 
                 extra_variables_matches: list[str] = re.findall(
-                    r'name:"(__relay_internal__pv__[^"]+provider)"',
+                    r'__relay_internal__pv__.+?provider',
                     script_cont,
                     re.MULTILINE,
                 )

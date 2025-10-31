@@ -412,6 +412,19 @@ class Api:
             },
         )
 
+    def CometFeedStoryMenuQuery(self, story_id: str) -> list[JSON]:
+        return self.fetch(
+            "CometFeedStoryMenuQuery",
+            {
+                "feed_location": "COMET_MEDIA_VIEWER",
+                "feed_menu_icon_variant": "FILLED",
+                "id": story_id,
+                "scale": 1,
+                "serialized_frtp_identifiers": None,
+                "story_debug_info": None,
+            },
+        )
+
     def SearchCometResultsPaginatedResultsQuery(
         self,
         query: str,

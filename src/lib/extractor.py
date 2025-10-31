@@ -4,7 +4,7 @@ from urllib.parse import parse_qs, urlparse
 import orjson
 
 from .api import API_ERROR_CODES, Api
-from .datatypes import JSON, Album, Feed, Post, Scroll, SearchItem, User
+from .datatypes import JSON, Album, Feed, Photo, Post, Scroll, SearchItem, User
 from .exceptions import NotFoundError, ParsingError, ResponseError
 from .parsers import parse_album_item, parse_comment, parse_post, parse_search
 from .utils import base64s, catch_rate_limit, urlbasename
@@ -178,6 +178,11 @@ def get_post(
         post_payload: JSON = api.CometSinglePostDialogContentQuery(post_id, focus)[0]["data"]["node"]
 
         post = parse_post(post_payload)
+        if len(post.attachments) == 1 and isinstance(post.attachments[0], Photo) and "dst-jpg_" in post.attachments[0].url:
+            post.attachments[0].url = api.CometFeedStoryMenuQuery(
+                post_id,
+            )[0]["data"]["feed_unit"]["nfx_action_menu_items"][0]["story"]["attachments"][0]["media"]["download_link"][:-5]
+
         if post.feedback_id is not None:
             comments_payload: JSON
             if sort_type:
