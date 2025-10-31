@@ -15,7 +15,7 @@ QUERY_NAMES: list[str] = [
     "CommentListComponentsRootQuery",
     "CommentsListComponentsPaginationQuery",
     "Depth1CommentsListPaginationQuery",
-    "FBUnifiedVideoRootWithEntrypointQuery",
+    "FBReelsRootWithEntrypointQuery",
     "GroupsCometDiscussionLayoutRootQuery",
     "GroupsCometFeedRegularStoriesPaginationQuery",
     "ProfileCometHeaderQuery",
@@ -30,6 +30,7 @@ URLS: list[str] = [
     "https://www.facebook.com/reel/3894716004079577",
     "https://www.facebook.com/groups/python",
     "https://www.facebook.com/media/set/?set=a.10152716010956729",
+    "https://www.facebook.com/photo/?fbid=10152716011096729&set=a.10152716010956729",
     "https://www.facebook.com/watch/search/?q=python",
 ]
 HEADERS: dict[str, str] = {

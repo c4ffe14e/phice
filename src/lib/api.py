@@ -280,33 +280,24 @@ class Api:
             },
         )
 
-    def FBUnifiedVideoRootWithEntrypointQuery(self, init_id: str) -> list[JSON]:
+    def FBReelsRootWithEntrypointQuery(self, reel_id: str) -> list[JSON]:
         return self.fetch(
-            "FBUnifiedVideoRootWithEntrypointQuery",
+            "FBReelsRootWithEntrypointQuery",
             {
                 "count": 0,
-                "initial_node_id": init_id,
+                "group_id_list": [],
+                "initial_node_id": reel_id,
                 "isAggregationProfileViewerOrShouldShowReelsForPage": True,
                 "page_id": "",
+                "recent_vpvs_v2": [],
+                "renderLocation": "fb_shorts_profile_video_deep_dive",
+                "root_video_id": reel_id,
+                "root_video_tracking_key": "",
                 "scale": 1,
-                "should_defer_load_buffer_reels": False,
                 "shouldIncludeInitialNodeFetch": True,
                 "shouldShowReelsForPage": False,
+                "surface_type": "FEED_VIDEO_DEEP_DIVE",
                 "useDefaultActor": False,
-                "video_feed_context_data": {
-                    "arltw_feed_section_type": "FB_SHORTS_CHAINING",
-                    "in_session_watched_video": None,
-                    "is_async_ads_enabled": True,
-                    "is_async_ads_headload_coupling_enabled": True,
-                    "player_behavior": "UNIFIED_PLAYER_VDD",
-                    "real_time_ranking_context_data": {"recent_vpvs_v2": []},
-                    "request_type": "NORMAL",
-                    "seed_video_id": init_id,
-                    "shorts_search_params": {},
-                    "surface_type": "FEED_VIDEO_DEEP_DIVE",
-                    "tracking_code": "",
-                    "video_channel_entry_point": "NEWSFEED",
-                },
             },
         )
 

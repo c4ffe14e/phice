@@ -161,7 +161,7 @@ def get_post(
                     if page_id and video_id:
                         post_id = base64s(f"S:_I{page_id}:{video_id}:{video_id}")
                 case "reel":
-                    reel: JSON | None = api.FBUnifiedVideoRootWithEntrypointQuery(token)[0]["data"]["video"]
+                    reel: JSON | None = api.FBReelsRootWithEntrypointQuery(token)[0]["data"]["video"]
                     if reel:
                         post_id = reel["creation_story"]["id"]
                 case "photos":
