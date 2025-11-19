@@ -10,12 +10,12 @@ Inspired by projects like [Nitter](https://github.com/zedeus/nitter), [Invidious
 
 # Features
 
+- Free and open-source
+- Lightweight
 - No ADS
-- No trackers
 - No JavaScript required
 - No account required
-- Lightweight
-- Free and open-source
+- No trackers
 - RSS feeds
 
 # Installation
