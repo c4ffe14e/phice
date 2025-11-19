@@ -69,7 +69,7 @@
                 <span class="comment_time" title="{{ comment.time | format_time_full }}">{{ comment.time | format_time }}</span>
                 <div class="comment_feedback">
                     <div class="reactions">
-                        {{ icon("thumbs-up") }}<span class="feedback_text">{{ comment.reactions.total | format_number }}</span>
+                        {{ icon("thumbs-up") }}<span class="feedback_text" title="Reactions">{{ comment.reactions.total | format_number }}</span>
                     </div>
                     <div class="reactions_popup">
                         {{ icon("thumbs-up") }}<span class="feedback_text">{{ comment.reactions.like | format_number }}</span>
@@ -96,7 +96,7 @@
                                 )
                             }}"
                         {% endif %}
-                    >{{ icon("comment") }}<span class="feedback_text">{{ comment.replies_count | format_number }}</span>
+                    >{{ icon("comment") }}<span class="feedback_text" title="Replies">{{ comment.replies_count | format_number }}</span>
                     </a>
                 </div>
             </div>
@@ -214,7 +214,7 @@
         {% if post.feedback_id is not none %}
             <div class="post_feedback">
                 <div class="reactions">
-                    {{ icon("thumbs-up") }}<span class="feedback_text">{{ post.reactions.total | format_number }}</span>
+                    {{ icon("thumbs-up") }}<span class="feedback_text" title="Reactions">{{ post.reactions.total | format_number }}</span>
                 </div>
                 <div class="reactions_popup">
                     {{ icon("thumbs-up") }}<span class="feedback_text">{{ post.reactions.like | format_number }}</span>
@@ -245,14 +245,14 @@
                         }}"
                     {% endif %}
                 >
-                    {{ icon("comment") }}<span class="feedback_text">{{ post.comments_count | format_number }}</span>
+                    {{ icon("comment") }}<span class="feedback_text" title="Comments">{{ post.comments_count | format_number }}</span>
                 </a>
-                {{ icon("share") }}<span class="feedback_text">{{ post.share_count | format_number }}</span>
+                {{ icon("share") }}<span class="feedback_text" title="Shares">{{ post.share_count | format_number }}</span>
                 {% if post.view_count is not none %}
-                    {{ icon("play") }}<span class="feedback_text">{{ post.view_count | format_number }}</span>
+                    {{ icon("play") }}<span class="feedback_text" title="Views">{{ post.view_count | format_number }}</span>
                 {% endif %}
                 {% if post.voters_count is not none %}
-                    {{ icon("poll") }}<span class="feedback_text">{{ post.voters_count | format_number }}</span>
+                    {{ icon("poll") }}<span class="feedback_text" title="Votes">{{ post.voters_count | format_number }}</span>
                 {% endif %}
             </div>
         {% endif %}
