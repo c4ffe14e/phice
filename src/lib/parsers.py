@@ -256,7 +256,7 @@ def parse_post(node: JSON, *, shared: bool = False) -> Post:
                 files_count: int = attachments["count"]
                 if files_count != len(post.attachments):
                     post.files_left = files_count - len(post.attachments)
-            case "Share" | "ShareMedium":
+            case "Share" | "ShareMedium" | "ShareSevere":
                 text.append(attachment["story_attachment_link_renderer"]["attachment"]["web_link"]["url"])
             case "Event":
                 post.attachments.append(
@@ -278,8 +278,6 @@ def parse_post(node: JSON, *, shared: bool = False) -> Post:
                     )
                 )
                 post.view_count = None
-            case "ShareSevere":
-                pass
             case "Unavailable":
                 post.attachments.append(Unavailable())
             case "TextPoll":
