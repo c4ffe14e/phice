@@ -96,16 +96,21 @@ def get_profile(username: str, cursor: str | None = None, *, proxy: str | None =
             for i in side["profile_tile_views"]["nodes"][1]["view_style_renderer"]["view"]["profile_tile_items"]["nodes"]:
                 item: dict[str, str | None] = {"text": None, "url": None, "type": None}
 
-                context: JSON = i["node"]["timeline_context_item"]["renderer"]["context_item"]
-                item["text"] = context["title"]["text"]
-                if context.get("subtitle"):
-                    item["text"] += f" {context['subtitle']['text']}"
-                if ranges := context["title"]["ranges"]:
-                    url: str | None = ranges[0]["entity"]["url"]
-                    if url and url.startswith("https://l.facebook.com/l.php"):
-                        item["url"] = parse_qs(urlparse(url).query)["u"][0]
-                    else:
-                        item["url"] = url
+                renderer: JSON = i["node"]["timeline_context_item"]["renderer"]
+                match renderer["__typename"]:
+                    case "WhatsappNumberIntroCardItemRenderer":
+                        item["text"] = renderer["wa_number"]
+                        item["url"] = renderer["wa_link"]
+                    case _:
+                        item["text"] = renderer["context_item"]["title"]["text"]
+                        if subtitle := renderer["context_item"].get("subtitle"):
+                            item["text"] += f" {subtitle['text']}"
+                        if ranges := renderer["context_item"]["title"]["ranges"]:
+                            url: str | None = ranges[0]["entity"]["url"]
+                            if url and url.startswith("https://l.facebook.com/l.php"):
+                                item["url"] = parse_qs(urlparse(url).query)["u"][0]
+                            else:
+                                item["url"] = url
                 item["type"] = i["node"]["timeline_context_item"]["timeline_context_list_item_type"][11:].lower()
 
                 feed.info.append(item)
