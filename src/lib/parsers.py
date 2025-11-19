@@ -76,7 +76,7 @@ def parse_comment(node: JSON) -> Comment:
 
     if i := node["attachments"]:
         attachments: JSON = i[0]["style_type_renderer"]
-        media: JSON = attachments["attachment"]["media"]
+        media: JSON = attachments["attachment"].get("media")
 
         match attachments["__typename"][15:-13]:
             case "Photo":
