@@ -13,7 +13,7 @@ from .settings import PhiceConfig, UserSettings
 def create_app(config_file: Path) -> Flask:
     app: Flask = Flask(__name__)
 
-    if config_file.exists():
+    if config_file.is_file():
         with config_file.open("r", encoding="utf-8") as f:
             data: dict[str, Any] = tomllib.loads(f.read())
             app.config["phice"] = PhiceConfig(**data["phice"])
