@@ -205,14 +205,21 @@ def parse_post(node: JSON, *, shared: bool = False) -> Post:
         media: JSON = attachment.get("media", {})
 
         match styles["__typename"][15:-13]:
-            case "Photo":
-                image_url: str = media["photo_image"]["uri"] if media.get("photo_image") else media["placeholder_image"]["uri"]
+            case "Photo" | "CoverPhoto":
+                image_url: str
+                if "viewer_image" in media and "uri" in media["viewer_image"]:
+                    image_url = media["viewer_image"]["uri"]
+                elif "photo_image" in media and "uri" in media["photo_image"]:
+                    image_url = media["photo_image"]["uri"]
+                else:
+                    image_url = media["placeholder_image"]["uri"]
+
                 post.attachments.append(
                     Photo(
                         id=media["id"],
                         url=image_url,
                         owner_id=author["id"],
-                        alt_text=media["accessibility_caption"],
+                        alt_text=media.get("accessibility_caption", ""),
                     )
                 )
             case "Video":
@@ -267,7 +274,13 @@ def parse_post(node: JSON, *, shared: bool = False) -> Post:
                     )
                 )
             case "ProfileMedia":
-                post.attachments.append(Photo(id=media["id"], url=media["image"]["uri"]))
+                post.attachments.append(
+                    Photo(
+                        id=media["id"],
+                        url=media["image"]["uri"],
+                        alt_text=media["accessibility_caption"],
+                    )
+                )
             case "AnimatedImageShare":
                 post.attachments.append(
                     AnimatedImage(
