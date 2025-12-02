@@ -205,7 +205,7 @@ def parse_post(node: JSON, *, shared: bool = False) -> Post:
         media: JSON = attachment.get("media", {})
 
         match styles["__typename"][15:-13]:
-            case "Photo" | "CoverPhoto":
+            case "Photo" | "CoverPhoto" | "3DPhoto":
                 image_url: str
                 if "viewer_image" in media and "uri" in media["viewer_image"]:
                     image_url = media["viewer_image"]["uri"]
