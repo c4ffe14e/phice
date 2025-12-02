@@ -1,4 +1,5 @@
 {
+  "__relay_internal__pv__GroupsCometGroupChatLazyLoadLastMessageSnippetrelayprovider": 0,
   "__relay_internal__pv__ProfilePageImprovementsEnabledrelayprovider": 0,
   "__relay_internal__pv__GHLShouldChangeAdIdFieldNamerelayprovider": 0,
   "__relay_internal__pv__GHLShouldChangeSponsoredDataFieldNamerelayprovider": 0,
@@ -23,11 +24,11 @@
   "__relay_internal__pv__CometFeedStoryCopyLinkMenuItem_isLinkSharingEnabledrelayprovider": 0,
   "__relay_internal__pv__isAttachmentsQueryOptimizationEnabledrelayprovider": 0,
   "__relay_internal__pv__isWaAddressableFieldsEnabledrelayprovider": 0,
-  "__relay_internal__pv__GroupsCometGroupChatLazyLoadLastMessageSnippetrelayprovider": 0,
   "__relay_internal__pv__GroupsCometLazyLoadFeaturedSectionrelayprovider": 0,
+  "__relay_internal__pv__MWEBNewUserOnboardingShouldLoadUpsellsrelayprovider": 0,
   "__relay_internal__pv__FeedComposerComet_isGenAILabelEnabledrelayprovider": 0,
   "__relay_internal__pv__CometUnifiedVideoCreation_showPrivacyMergerelayprovider": 0,
   "__relay_internal__pv__CometUGCPublicCreation_showComposerPublicAwarenessTooltiprelayprovider": 0,
-  "__relay_internal__pv__CometVideoHomeCopyLinkMenuItem_isLinkSharingEnabledrelayprovider": 0,
-  "__relay_internal__pv__MWEBNewUserOnboardingShouldLoadUpsellsrelayprovider": 0
+  "__relay_internal__pv__MarketplaceCometAdmodulerelayprovider": 0,
+  "__relay_internal__pv__CometVideoHomeCopyLinkMenuItem_isLinkSharingEnabledrelayprovider": 0
 }
