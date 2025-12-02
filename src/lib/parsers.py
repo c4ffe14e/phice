@@ -194,8 +194,8 @@ def parse_post(node: JSON, *, shared: bool = False) -> Post:
     if message := content["comet_sections"]["message"]:
         if rich_message := message.get("rich_message"):
             text.extend(i["text"] for i in rich_message)
-        else:
-            text.append(message["story"]["message"]["text"])
+        elif post_text := message["story"].get("message"):
+            text.append(post_text["text"])
         if suffix := content["comet_sections"]["message_suffix"]:
             text.append(f" --- {suffix['story']['suffix']['text']}")
 
