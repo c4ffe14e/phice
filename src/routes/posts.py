@@ -8,6 +8,7 @@ bp: Blueprint = Blueprint("posts", __name__)
 
 
 @bp.route("/<string:author>/posts/<string:token>", endpoint="posts")
+@bp.route("/<string:author>/posts/<string:_>/<string:token>", endpoint="posts")
 @bp.route("/<string:author>/videos/<string:token>", endpoint="videos")
 @bp.route("/reel/<string:token>", endpoint="reel")
 @bp.route("/groups/<string:author>/permalink/<string:token>", endpoint="groups_posts")
@@ -17,7 +18,7 @@ bp: Blueprint = Blueprint("posts", __name__)
 @bp.route("/permalink.php", endpoint="permalink")
 @bp.route("/story.php", endpoint="story")
 @bp.route("/watch", endpoint="watch")
-def posts(author: str | None = None, token: str | None = None) -> ResponseReturnValue:  # pyright: ignore[reportUnusedParameter] # noqa: ARG001
+def posts(author: str | None = None, token: str | None = None, _: str | None = None) -> ResponseReturnValue:  # pyright: ignore[reportUnusedParameter] # noqa: ARG001
     post_id: str | None = None
     match request.endpoint:
         case "posts.photo":
