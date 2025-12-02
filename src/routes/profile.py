@@ -7,10 +7,10 @@ from ..lib.extractor import get_profile
 bp: Blueprint = Blueprint("profile", __name__)
 
 
+@bp.route("/p/<string:username>")
 @bp.route("/profile.php", endpoint="profile_php")
 @bp.route("/people/<string:_>/<string:username>")
 @bp.route("/<string:username>")
-@bp.route("/p/<string:username>")
 def profile(username: str = "", _: str | None = None) -> ResponseReturnValue:
     token: str | None = request.args.get("id") if request.endpoint == "profile.profile_php" else username
     if not token:
