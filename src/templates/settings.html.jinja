@@ -11,7 +11,7 @@
         <label class="settings_row">
             Theme
             <select name="theme">
-                {% for v, n in THEMES %}
+                {% for v, n in THEMES.items() %}
                     <option value="{{ v }}" {{ "selected" if get_user_settings().theme == v }}>{{ n }}</option>
                 {% endfor %}
             </select>
