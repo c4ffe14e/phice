@@ -122,7 +122,7 @@ class Api:
 
         ret: defaultdict[str, list[JSON]] = defaultdict(list)
         for tag in script_tags:
-            if isinstance(tag, Tag) and tag.string is not None:
+            if tag.string is not None:
                 try:
                     parsed_json: JSON | list[JSON] | str | int = orjson.loads(tag.string.encode())["require"][0][3][0]
                 except IndexError:

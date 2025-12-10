@@ -218,19 +218,19 @@ def parse_post(node: JSON, *, shared: bool = False) -> Post:
                         alt_text=media.get("accessibility_caption", ""),
                     )
                 )
-            case "Video":
+            case "UnifiedLightweightVideo":
+                media = attachment["style_infos"][0]["containing_story"]["attachments"][0]["media"]
+                video_fields: JSON = media["videoDeliveryLegacyFields"]
+
                 if not post.from_group:
                     post.post_id = media["id"]
                     post.is_video = True
-                video_url: str = (
-                    media["videoDeliveryLegacyFields"]["browser_native_hd_url"]
-                    or media["videoDeliveryLegacyFields"]["browser_native_sd_url"]
-                )
                 post.attachments.append(
                     Video(
                         id=media["id"],
-                        url=video_url,
+                        url=video_fields["browser_native_hd_url"] or video_fields["browser_native_sd_url"],
                         owner_id=media["owner"]["id"],
+                        thumbnail_url=media["preferred_thumbnail"]["image"]["uri"],
                     )
                 )
             case "Album" | "AlbumFrame" | "AlbumColumn":
@@ -305,6 +305,21 @@ def parse_post(node: JSON, *, shared: bool = False) -> Post:
                         text=attachment["target"]["poll_question_text"],
                         total=voters_count,
                         options=options,
+                    )
+                )
+            case "Video":
+                if not post.from_group:
+                    post.post_id = media["id"]
+                    post.is_video = True
+                video_url: str = (
+                    media["videoDeliveryLegacyFields"]["browser_native_hd_url"]
+                    or media["videoDeliveryLegacyFields"]["browser_native_sd_url"]
+                )
+                post.attachments.append(
+                    Video(
+                        id=media["id"],
+                        url=video_url,
+                        owner_id=media["owner"]["id"],
                     )
                 )
             case "FBReels":
