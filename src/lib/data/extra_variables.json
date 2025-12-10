@@ -1,14 +1,13 @@
 {
-  "__relay_internal__pv__GroupsCometGroupChatLazyLoadLastMessageSnippetrelayprovider": 0,
   "__relay_internal__pv__ProfilePageImprovementsEnabledrelayprovider": 0,
   "__relay_internal__pv__GHLShouldChangeAdIdFieldNamerelayprovider": 0,
   "__relay_internal__pv__GHLShouldChangeSponsoredDataFieldNamerelayprovider": 0,
-  "__relay_internal__pv__FBReels_enable_view_dubbed_audio_type_gkrelayprovider": 0,
   "__relay_internal__pv__CometUFICommentAvatarStickerAnimatedImagerelayprovider": 0,
   "__relay_internal__pv__IsWorkUserrelayprovider": 0,
   "__relay_internal__pv__TestPilotShouldIncludeDemoAdUseCaserelayprovider": 0,
   "__relay_internal__pv__FBReels_deprecate_short_form_video_context_gkrelayprovider": 0,
   "__relay_internal__pv__FeedDeepDiveTopicPillThreadViewEnabledrelayprovider": 0,
+  "__relay_internal__pv__FBReels_enable_view_dubbed_audio_type_gkrelayprovider": 0,
   "__relay_internal__pv__CometImmersivePhotoCanUserDisable3DMotionrelayprovider": 0,
   "__relay_internal__pv__WorkCometIsEmployeeGKProviderrelayprovider": 0,
   "__relay_internal__pv__IsMergQAPollsrelayprovider": 0,
@@ -24,11 +23,11 @@
   "__relay_internal__pv__CometFeedStoryCopyLinkMenuItem_isLinkSharingEnabledrelayprovider": 0,
   "__relay_internal__pv__isAttachmentsQueryOptimizationEnabledrelayprovider": 0,
   "__relay_internal__pv__isWaAddressableFieldsEnabledrelayprovider": 0,
+  "__relay_internal__pv__GroupsCometGroupChatLazyLoadLastMessageSnippetrelayprovider": 0,
   "__relay_internal__pv__GroupsCometLazyLoadFeaturedSectionrelayprovider": 0,
   "__relay_internal__pv__MWEBNewUserOnboardingShouldLoadUpsellsrelayprovider": 0,
   "__relay_internal__pv__FeedComposerComet_isGenAILabelEnabledrelayprovider": 0,
   "__relay_internal__pv__CometUnifiedVideoCreation_showPrivacyMergerelayprovider": 0,
   "__relay_internal__pv__CometUGCPublicCreation_showComposerPublicAwarenessTooltiprelayprovider": 0,
-  "__relay_internal__pv__MarketplaceCometAdmodulerelayprovider": 0,
   "__relay_internal__pv__CometVideoHomeCopyLinkMenuItem_isLinkSharingEnabledrelayprovider": 0
 }
