@@ -7,8 +7,9 @@ from ..lib.extractor import get_post
 bp: Blueprint = Blueprint("posts", __name__)
 
 
-@bp.route("/<string:author>/posts/<string:token>", endpoint="posts")
 @bp.route("/<string:author>/posts/<string:_>/<string:token>", endpoint="posts")
+@bp.route("/<string:author>/posts/<string:token>", endpoint="posts")
+@bp.route("/<string:author>/videos/<string:_>/<string:token>", endpoint="videos")
 @bp.route("/<string:author>/videos/<string:token>", endpoint="videos")
 @bp.route("/reel/<string:token>", endpoint="reel")
 @bp.route("/groups/<string:author>/permalink/<string:token>", endpoint="groups_posts")
