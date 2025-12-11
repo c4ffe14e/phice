@@ -187,6 +187,7 @@ class Api:
                 "stream_count": 1,
                 "userID": user_id,
             },
+            fuck_facebook=True,
         )
 
     def ProfileCometTimelineFeedRefetchQuery(self, user_id: str, cursor: str | None) -> list[JSON]:
