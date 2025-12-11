@@ -13,12 +13,13 @@ from .settings import PhiceConfig, UserSettings
 def create_app(config_file: Path) -> Flask:
     app: Flask = Flask(__name__)
 
+    custom_config: dict[str, Any] = {}
     if config_file.is_file():
         with config_file.open("r", encoding="utf-8") as f:
-            data: dict[str, Any] = tomllib.loads(f.read())
-            app.config["phice"] = PhiceConfig(**data["phice"])
-            app.config["user_settings"] = UserSettings(**data["default_user_settings"])
+            custom_config = tomllib.loads(f.read())
 
+    app.config["phice"] = PhiceConfig(**custom_config.get("phice", {}))
+    app.config["user_settings"] = UserSettings(**custom_config.get("default_user_settings", {}))
     app.url_map.strict_slashes = False
     app.jinja_options["autoescape"] = True
     app.jinja_env.filters.update(FILTERS)
