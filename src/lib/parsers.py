@@ -219,7 +219,6 @@ def parse_post(node: JSON, *, shared: bool = False) -> Post:
                     )
                 )
             case "UnifiedLightweightVideo":
-                media = attachment["style_infos"][0]["containing_story"]["attachments"][0]["media"]
                 video_fields: JSON = media["videoDeliveryLegacyFields"]
 
                 if not post.from_group:

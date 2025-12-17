@@ -13,7 +13,7 @@ COMMENT_FILTERS: defaultdict[str, str] = defaultdict(
     lambda: "RANKED_FILTERED_INTENT_V1",
     {
         "all": "RANKED_UNFILTERED_CHRONOLOGICAL_REPLIES_INTENT_V1",
-        "newest": "RECENT_ACTIVITY_INTENT_V1",
+        "newest": "REVERSE_CHRONOLOGICAL_UNFILTERED_INTENT_V1",
         "filtered": "RANKED_FILTERED_INTENT_V1",
     },
 )

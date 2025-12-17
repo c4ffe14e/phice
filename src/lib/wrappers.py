@@ -9,9 +9,10 @@ def http_client(
     base_url: str = "",
 ) -> httpx.Client:
     client_headers: dict[str, str] = {
-        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:141.0) Gecko/20100101 Firefox/141.0",
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:147.0) Gecko/20100101 Firefox/147.0",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.5",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Origin": "https://www.facebook.com",
         "Alt-Used": "www.facebook.com",
         "Upgrade-Insecure-Requests": "1",
         "Sec-Fetch-Dest": "document",
@@ -19,8 +20,6 @@ def http_client(
         "Sec-Fetch-Site": "same-origin",
         "TE": "trailers",
     }
-    if headers is not None:
-        client_headers.update(headers)
     client_cookies: dict[str, str] = {
         "datr": "emeOaIys3XO9UYWmzznuIGOI",
         "dpr": "2",
@@ -30,7 +29,7 @@ def http_client(
     client_proxy: str | None = proxy or None
 
     return httpx.Client(
-        headers=client_headers,
+        headers=(client_headers | (headers or {})),
         cookies=client_cookies,
         proxy=client_proxy,
         timeout=15,

@@ -28,16 +28,16 @@ API_ERROR_CODES: dict[str, int] = {
 
 class Api:
     def __init__(self, *, proxy: str | None = None) -> None:
-        self.lsd: str = "_"
         self.client: httpx.Client = http_client(base_url="https://www.facebook.com", proxy=proxy)
+        self.lsd: str = "_"
 
     def fetch(self, name: str, variables: JSON, *, fuck_facebook: bool = False) -> list[JSON]:
         response: httpx.Response = self.client.post(
             "/api/graphql/",
             headers={
                 "Accept": "*/*",
+                "X-FB-Friendly-Name": name,
                 "X-FB-LSD": self.lsd,
-                "Origin": "https://www.facebook.com",
                 "Sec-Fetch-Dest": "empty",
                 "Sec-Fetch-Mode": "cors",
             },
@@ -59,6 +59,7 @@ class Api:
                 "__hblp": "",
                 "__sjsp": "",
                 "__comet_req": "15",
+                "lsd": self.lsd,
                 "jazoest": "",
                 "__spin_r": "",
                 "__spin_b": "trunk",
@@ -66,15 +67,15 @@ class Api:
                 "__crn": "",
                 "fb_api_caller_class": "RelayModern",
                 "fb_api_req_friendly_name": name,
-                "variables": orjson.dumps(variables | EXTRA_VARIABLES).decode(),
                 "server_timestamps": "true",
+                "variables": orjson.dumps(variables | EXTRA_VARIABLES).decode(),
                 "doc_id": DOC_IDS[name],
             },
         )
         if response.status_code != 200:
             raise ResponseError(f"Facebook returned {response.status_code}")
-        result: list[JSON] = [orjson.loads(i) for i in response.text.splitlines()]
 
+        result: list[JSON] = [orjson.loads(i) for i in response.text.splitlines()]
         errors: list[JSON] | None = result[0].get("errors")
         if errors and not (fuck_facebook and "field_exception" in errors[0]["message"]):
             raise ResponseError(f"{name}: {errors[0]['message']}", code=errors[0].get("code"))
@@ -87,25 +88,44 @@ class Api:
             headers={
                 "Accept": "*/*",
                 "X-FB-LSD": self.lsd,
-                "Origin": "https://www.facebook.com",
                 "Sec-Fetch-Dest": "empty",
                 "Sec-Fetch-Mode": "cors",
             },
             data={
+                "client_previous_actor_id": "",
                 "route_url": f"/{path}",
+                "routing_namespace": "fb_comet",
+                "__aaid": "0",
+                "__user": "0",
                 "__a": "1",
+                "__req": "j",
+                "__hs": "",
+                "dpr": "1",
+                "__ccg": "GOOD",
+                "__rev": "",
+                "__s": "",
+                "__hsi": "",
+                "__dyn": "",
+                "__csr": "",
+                "__hsdp": "",
+                "__hblp": "",
+                "__sjsp": "",
                 "__comet_req": "15",
                 "lsd": self.lsd,
+                "jazoest": "",
+                "__spin_r": "",
+                "__spin_b": "trunk",
+                "__spin_t": "",
+                "__crn": "",
             },
         )
 
         result: JSON = orjson.loads(response.text[9:])["payload"].get("payload", {}).get("result", {})
+        route_type: str | None = None
         if not result:
             return None, None
         if result["type"] == "route_redirect":
             result = result["redirect_result"]
-
-        route_type: str | None = None
         if entity_key_config := result["exports"].get("entityKeyConfig"):
             route_type = entity_key_config["entity_type"]["value"]
 
@@ -221,7 +241,7 @@ class Api:
             "CometSinglePostDialogContentQuery",
             {
                 "feedbackSource": 2,
-                "feedLocation": "PERMALINK",
+                "feedLocation": "POST_PERMALINK_DIALOG",
                 "focusCommentID": focus_id,
                 "privacySelectorRenderLocation": "COMET_STREAM",
                 "renderLocation": "permalink",
@@ -240,7 +260,7 @@ class Api:
                 "commentsBeforeCount": None,
                 "commentsBeforeCursor": None,
                 "commentsIntentToken": None,
-                "feedLocation": "PERMALINK",
+                "feedLocation": "POST_PERMALINK_DIALOG",
                 "focusCommentID": None,
                 "scale": 1,
                 "useDefaultActor": False,
@@ -253,7 +273,7 @@ class Api:
             "CommentListComponentsRootQuery",
             {
                 "commentsIntentToken": sort,
-                "feedLocation": "PERMALINK",
+                "feedLocation": "POST_PERMALINK_DIALOG",
                 "feedbackSource": 2,
                 "focusCommentID": focus_id,
                 "scale": 1,
@@ -268,7 +288,7 @@ class Api:
             {
                 "clientKey": None,
                 "expansionToken": expansion_token,
-                "feedLocation": "PERMALINK",
+                "feedLocation": "POST_PERMALINK_DIALOG",
                 "focusCommentID": None,
                 "repliesAfterCount": None,
                 "repliesAfterCursor": cursor,
@@ -330,6 +350,7 @@ class Api:
                 "feedbackSource": 0,
                 "feedLocation": "GROUP",
                 "feedType": "DISCUSSION",
+                "filter_topic_id": None,
                 "focusCommentID": None,
                 "groupID": group_id,
                 "hasHoistStories": False,
@@ -342,7 +363,7 @@ class Api:
                 "renderLocation": "group",
                 "scale": 1,
                 "shouldDeferMainFeed": False,
-                "sortingSetting": "RECENT_ACTIVITY",
+                "sortingSetting": "TOP_POSTS",
                 "threadID": "",
                 "useDefaultActor": False,
             },
@@ -357,11 +378,12 @@ class Api:
                 "feedLocation": "GROUP",
                 "feedType": "DISCUSSION",
                 "feedbackSource": 0,
+                "filterTopicId": None,
                 "focusCommentID": None,
                 "privacySelectorRenderLocation": "COMET_STREAM",
                 "renderLocation": "group",
                 "scale": 1,
-                "sortingSetting": "RECENT_ACTIVITY",
+                "sortingSetting": "TOP_POSTS",
                 "stream_initial_count": 1,
                 "useDefaultActor": False,
                 "id": group_id,
@@ -401,14 +423,15 @@ class Api:
             {
                 "feedbackSource": 65,
                 "feedLocation": "COMET_MEDIA_VIEWER",
-                "privacySelectorRenderLocation": "COMET_MEDIA_VIEWER",
-                "renderLocation": "comet_media_viewer",
-                "scale": 1,
-                "useDefaultActor": False,
+                "focusCommentID": None,
                 "isMediaset": True,
                 "mediasetToken": "",
                 "nodeID": node_id,
-                "focusCommentID": None,
+                "privacySelectorRenderLocation": "COMET_MEDIA_VIEWER",
+                "renderLocation": "comet_media_viewer",
+                "scale": 1,
+                "shouldShowComments": False,
+                "useDefaultActor": False,
             },
         )
 
@@ -419,6 +442,7 @@ class Api:
                 "feed_location": "COMET_MEDIA_VIEWER",
                 "feed_menu_icon_variant": "FILLED",
                 "id": story_id,
+                "renderLocation": "homepage_stream",
                 "scale": 1,
                 "serialized_frtp_identifiers": None,
                 "story_debug_info": None,

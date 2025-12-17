@@ -25,9 +25,7 @@
   "__relay_internal__pv__isWaAddressableFieldsEnabledrelayprovider": 0,
   "__relay_internal__pv__GroupsCometGroupChatLazyLoadLastMessageSnippetrelayprovider": 0,
   "__relay_internal__pv__GroupsCometLazyLoadFeaturedSectionrelayprovider": 0,
+  "__relay_internal__pv__CometVideoHomeCopyLinkMenuItem_isLinkSharingEnabledrelayprovider": 0,
   "__relay_internal__pv__MWEBNewUserOnboardingShouldLoadUpsellsrelayprovider": 0,
-  "__relay_internal__pv__FeedComposerComet_isGenAILabelEnabledrelayprovider": 0,
-  "__relay_internal__pv__CometUnifiedVideoCreation_showPrivacyMergerelayprovider": 0,
-  "__relay_internal__pv__CometUGCPublicCreation_showComposerPublicAwarenessTooltiprelayprovider": 0,
-  "__relay_internal__pv__CometVideoHomeCopyLinkMenuItem_isLinkSharingEnabledrelayprovider": 0
+  "__relay_internal__pv__CometUnifiedVideoCreation_showPrivacyMergerelayprovider": 0
 }
