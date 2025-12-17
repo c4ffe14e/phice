@@ -30,7 +30,7 @@ or build your image with:
 docker buildx build -t phice:latest .
 ```
 
-Create a config file:
+Create a config file (optional):
 
 ```sh
 cp config.example.toml config.toml
@@ -61,7 +61,7 @@ Fetch project dependencies:
 uv sync
 ```
 
-Create a config file:
+Create a config file (optional):
 
 ```sh
 cp config.example.toml config.toml

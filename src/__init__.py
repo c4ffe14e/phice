@@ -10,11 +10,11 @@ from .jinja_globals import GLOBALS
 from .settings import PhiceConfig, UserSettings
 
 
-def create_app(config_file: Path) -> Flask:
+def create_app(config_file: Path | None) -> Flask:
     app: Flask = Flask(__name__)
 
     custom_config: dict[str, Any] = {}
-    if config_file.is_file():
+    if config_file and config_file.is_file():
         with config_file.open("r", encoding="utf-8") as f:
             custom_config = tomllib.loads(f.read())
 
