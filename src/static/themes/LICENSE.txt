@@ -1,2 +1,0 @@
-Copyright (c) 2021 Catppuccin
-MIT License (https://github.com/catppuccin/catppuccin/blob/main/LICENSE)
