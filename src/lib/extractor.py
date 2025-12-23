@@ -36,6 +36,7 @@ COMMENT_PAGING: int = 2
 GROUP_PAGING: int = 4
 ALBUM_PAGING: int = 3
 SEARCH_PAGING: int = 3
+EXCLUDED_SHARE_HEADERS: list[str] = ["rdid", "share_url", "idorvanity"]
 
 
 def get_profile(username: str, cursor: str | None = None, *, proxy: str | None = None) -> tuple[Feed, Scroll]:
@@ -400,10 +401,7 @@ def get_shared_url(route: str, proxy: str | None = None) -> str | None:
     url = url._replace(
         netloc="",
         scheme="",
-        query=urlencode(
-            [(k, v) for k, v in parse_qs(url.query).items() if k not in ("rdid", "share_url", "idorvanity")],
-            doseq=True,
-        ),
+        query=urlencode([(k, v) for k, v in parse_qs(url.query).items() if k not in EXCLUDED_SHARE_HEADERS], doseq=True),
     )
 
     return url.geturl()

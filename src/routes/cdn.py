@@ -11,6 +11,19 @@ from ..lib.wrappers import http_client
 
 bp: Blueprint = Blueprint("cdn", __name__)
 
+EXCLUDED_HEADERS: list[str] = [
+    "x-fb-connection-quality",
+    "alt-svc",
+    "x-robots-tag",
+    "connection",
+    "content-length",
+    "access-control-allow-origin",
+    "timing-allow-origin",
+    "x-crypto-project",
+    "x-additional-error-detail",
+    "x-fb-vts-requestid",
+]
+
 
 @bp.route("/cdn_external/<path:path>", endpoint="cdn_external")
 @bp.route("/cdn/<path:path>", endpoint="cdn")
@@ -23,24 +36,7 @@ def cdn(path: str) -> ResponseReturnValue:
     client: httpx.Client = http_client(headers=cdn_headers, proxy=get_config().proxy)
     cdn_request: httpx.Request = client.build_request("GET", f"{cdn_url}/{path}", params=request.query_string)
     cdn_response: httpx.Response = client.send(cdn_request, stream=True)
-
-    headers: dict[str, str] = {
-        k: v
-        for k, v in cdn_response.headers.items()
-        if k
-        not in (
-            "x-fb-connection-quality",
-            "alt-svc",
-            "x-robots-tag",
-            "connection",
-            "content-length",
-            "access-control-allow-origin",
-            "timing-allow-origin",
-            "x-crypto-project",
-            "x-additional-error-detail",
-            "x-fb-vts-requestid",
-        )
-    }
+    headers: dict[str, str] = {k: v for k, v in cdn_response.headers.items() if k not in EXCLUDED_HEADERS}
 
     def stream() -> Generator[bytes]:
         with suppress(httpx.ReadTimeout):
