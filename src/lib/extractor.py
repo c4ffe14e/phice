@@ -1,13 +1,18 @@
 from collections import defaultdict
-from urllib.parse import parse_qs, urlparse
+from typing import TYPE_CHECKING
+from urllib.parse import ParseResult, parse_qs, urlencode, urlparse
 
 import orjson
+
+if TYPE_CHECKING:
+    import httpx
 
 from .api import API_ERROR_CODES, Api
 from .datatypes import JSON, Album, Feed, Photo, Post, Scroll, SearchItem, User
 from .exceptions import NotFoundError, ParsingError, ResponseError
 from .parsers import parse_album_item, parse_comment, parse_post, parse_search
 from .utils import base64s, catch_rate_limit, urlbasename
+from .wrappers import http_client
 
 COMMENT_FILTERS: defaultdict[str, str] = defaultdict(
     lambda: "RANKED_FILTERED_INTENT_V1",
@@ -381,3 +386,24 @@ def get_search(
                     break
 
     return results, scroll
+
+
+def get_shared_url(route: str, proxy: str | None = None) -> str | None:
+    with http_client(proxy=proxy) as client:
+        r: httpx.Response = client.get(f"https://www.facebook.com/share/{route}", follow_redirects=False)
+
+    location: str | None = r.headers.get("location")
+    if r.status_code != 302 or location is None:
+        return None
+
+    url: ParseResult = urlparse(location)
+    url = url._replace(
+        netloc="",
+        scheme="",
+        query=urlencode(
+            [(k, v) for k, v in parse_qs(url.query).items() if k not in ("rdid", "share_url", "idorvanity")],
+            doseq=True,
+        ),
+    )
+
+    return url.geturl()
