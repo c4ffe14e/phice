@@ -221,31 +221,42 @@ input[type="number"] {
 
 .post_attachments {
     display: flex;
-    flex-flow: row-reverse wrap-reverse;
-    gap: 4px;
+    flex-wrap: wrap;
     margin-top: 8px;
+    gap: 4px;
 }
-
-.post_attachments_item {
-    flex: 1 1 calc(33.3333% - 4px);
+.post_attachments > * {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: calc(33.3333% - 4px);
 }
-
-.wrapped_video,
-.wrapped_image {
-    display: flex;
-    align-items: center;
-    background-color: black;
+.post_attachments > :nth-child(1):nth-last-child(3n+1) {
+    flex-basis: 100%;
 }
-.wrapped_image > img,
-.wrapped_video > video {
-    display: block;
+.post_attachments > :nth-child(1):nth-last-child(3n+2),
+.post_attachments > :nth-child(2):nth-last-child(3n+1) {
+    flex-basis: calc(50% - 4px);
+}
+.post_attachments > .post {
+    background-color: var(--background);
+    margin: 0 4px 0 4px;
+}
+.post_attachments > *,
+.post_attachments > a > * {
     width: 100%;
+}
+.post_attachments > a {
+    display: flex;
+}
+.post_attachments img {
+    object-fit: contain;
+    background-color: black;
 }
 
 .attachments_left {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: block;
+    align-content: center;
+    text-align: center;
     font-size: 2rem;
     font-weight: 500;
     background-color: rgba(0, 0, 0, 0.25);
@@ -256,7 +267,6 @@ input[type="number"] {
     border-radius: 8px;
     margin: 4px;
 }
-
 .post_poll_item {
     display: flex;
     position: relative;
@@ -265,23 +275,19 @@ input[type="number"] {
     background-color: var(--background3);
     overflow: hidden;
 }
-
 .post_poll_item_count {
     margin-left: auto;
     font-weight: 425;
 }
-
 .post_poll_item_layer1 {
     z-index: 1;
     color: var(--background3);
 }
-
 .post_poll_item_layer2 {
     z-index: 2;
     position: absolute;
     clip-path: inset(0 0 0 var(--persent, 0));
 }
-
 .post_poll_item_layer1,
 .post_poll_item_layer2 {
     display: flex;
@@ -289,7 +295,6 @@ input[type="number"] {
     padding: 4px;
     box-sizing: border-box;
 }
-
 .post_poll_item_bg {
     position: absolute;
     height: 100%;
@@ -298,7 +303,6 @@ input[type="number"] {
     top: 0;
     left: 0;
 }
-
 .post_poll_text {
     margin: 8px;
 }
@@ -375,11 +379,6 @@ input[type="number"] {
 .comment_attachment {
     width: 25%;
     border-radius: 8px;
-}
-
-.post_shared {
-    background-color: var(--background);
-    margin: 4px 4px 0 4px;
 }
 
 .badges {

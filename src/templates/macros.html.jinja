@@ -69,7 +69,9 @@
                 <span class="comment_time" title="{{ comment.time | format_time_full }}">{{ comment.time | format_time }}</span>
                 <div class="comment_feedback">
                     <div class="reactions">
-                        {{ icon("thumbs-up") }}<span class="feedback_text" title="Reactions">{{ comment.reactions.total | format_number }}</span>
+                        {{ icon("thumbs-up") }}<span class="feedback_text" title="Reactions">{{
+                            comment.reactions.total | format_number
+                        }}</span>
                     </div>
                     <div class="reactions_popup">
                         {{ icon("thumbs-up") }}<span class="feedback_text">{{ comment.reactions.like | format_number }}</span>
@@ -96,7 +98,9 @@
                                 )
                             }}"
                         {% endif %}
-                    >{{ icon("comment") }}<span class="feedback_text" title="Replies">{{ comment.replies_count | format_number }}</span>
+                    >{{ icon("comment") }}<span class="feedback_text" title="Replies">{{
+                            comment.replies_count | format_number
+                        }}</span>
                     </a>
                 </div>
             </div>
@@ -104,8 +108,8 @@
     </article>
 {% endmacro %}
 
-{% macro Post(post, expanded=false, class="") %}
-    <article class="post card {{ class }}">
+{% macro Post(post, expanded=false) %}
+    <article class="post card">
         <div class="post_header">
             <a
                 {% if post.author.username %}
@@ -131,9 +135,7 @@
                     {%- if post.badges %}<span class="badges">{{ " • ".join(post.badges) }}</span>{% endif %}
                     {%- if post.from_group -%}
                         {{ icon("chevron-right", class="group_arrow") }}<a
-                            href="{{
-                                url_for('groups.groups', token=post.from_group.username)
-                            }}"
+                            href="{{ url_for('groups.groups', token=post.from_group.username) }}"
                         ><span class="profile_name">{{ post.from_group.name }}</span>
                         </a>
                     {%- endif -%}
@@ -145,76 +147,91 @@
         {% if post.text -%}
             {{ expandable_p(post.text, expanded=expanded, class="post_text") }}
         {% endif %}
-        {% if post.shared_post %}
-            {{ Post(post.shared_post, class="post_shared") }}
-        {% elif post.attachments %}
+        {% if post.attachment %}
             <div class="post_attachments">
-                {% if post.files_left > 0 %}
-                    <a class="no_underline" href="{{ url_for('albums.albums', set='pcb.' + post.post_id) }}">
-                        <span class="attachments_left post_attachments_item">+{{ post.files_left }}</span>
-                    </a>
-                {% endif %}
-                {% for i in post.attachments | reverse %}
-                    {% set t = type(i) %}
-                    {% if t == "Photo" %}
-                        <a href="{{ url_for('posts.photo', fbid=i.id) }}">
-                            <div class="post_attachments_item wrapped_image"><img
+                {% set t = type(post.attachment) %}
+                {% if t == "Photo" %}
+                    <a href="{{ url_for('posts.photo', fbid=post.attachment.id) }}"><img
+                            src="{{ post.attachment.url | proxy }}"
+                            alt="{{ post.attachment.alt_text}}"
+                        /></a>
+                {% elif t == "Video" %}
+                    <video
+                        controls
+                        src="{{ post.attachment.url | proxy }}"
+                        preload="metadata"
+                    ></video>
+                {% elif t == "PostAlbum" %}
+                    {% for i in post.attachment.items %}
+                        {% set it = type(i) %}
+                        {% if it == "Photo" %}
+                            <a href="{{ url_for('posts.photo', fbid=i.id) }}"><img
                                     src="{{ i.url | proxy }}"
-                                    alt="{{ i.alt_text}}"
-                                /></div>
-                        </a>
-                    {% elif t == "Video" %}
-                        <div class="post_attachments_item wrapped_video"><video
+                                    alt="{{ i.alt_text }}"
+                                /></a>
+                        {% elif it == "Video" %}
+                            <video
                                 controls
                                 src="{{ i.url | proxy }}"
                                 preload="metadata"
-                            ></video></div>
-                    {% elif t == "AnimatedImage" %}
-                        <div class="post_attachments_item wrapped_video"><video
-                                loop
-                                autoplay
-                                muted
-                                src="{{ i.url | proxy }}"
-                            ></video></div>
-                    {% elif t == "Poll" %}
-                        <div class="post_poll post_attachments_item">
-                            <h3 class="post_poll_text">{{ i.text }}</h3>
-                            {% for j in i.options %}
-                                <div class="post_poll_item" style="--persent: {{ j[2] }}%">
-                                    <div class="post_poll_item_bg"></div>
-                                    <div class="post_poll_item_layer1">
-                                        <span class="post_poll_item_text">{{ j[0] }}</span><span class="post_poll_item_count"
-                                        >({{ j[1] | format_number }}) {{ j[2] }}%</span>
-                                    </div>
-                                    <div class="post_poll_item_layer2">
-                                        <span class="post_poll_item_text">{{ j[0] }}</span><span class="post_poll_item_count"
-                                        >({{ j[1] | format_number }}) {{ j[2] }}%</span>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% elif t == "Unavailable" %}
-                        <div class="post_text_card centered post_attachments_item">
-                            <span>{{ icon("lock") }}This content isn't available right now</span>
-                        </div>
-                    {% elif t == "Event" %}
-                        <div class="post_text_card post_attachments_item">
-                            <h2>{{ i.name }}</h2>
-                            <p>{{ i.time }}</p>
-                            <p>{{ i.description }}</p>
-                        </div>
-                    {% else %}
-                        <div class="post_text_card centered post_attachments_item">
-                            <span>{{ icon("triangle-exclamation") }} Unsupported attachment.</span>
-                        </div>
+                            ></video>
+                        {% endif %}
+                    {% endfor %}
+                    {% if post.attachment.items_left > 0 %}
+                        <a
+                            class="no_underline"
+                            href="{{ url_for('albums.albums', set=post.attachment.id) }}"
+                        ><span class="attachments_left">+{{ post.attachment.items_left }}</span></a>
                     {% endif %}
-                {% endfor %}
+                {% elif t == "AnimatedImage" %}
+                    <video
+                        loop
+                        autoplay
+                        muted
+                        src="{{ post.attachment.url | proxy }}"
+                    ></video>
+                {% elif t == "Poll" %}
+                    <div class="post_poll">
+                        <h3 class="post_poll_text">{{ post.attachment.text }}</h3>
+                        {% for i in post.attachment.options %}
+                            <div class="post_poll_item" style="--persent: {{ i[2] }}%">
+                                <div class="post_poll_item_bg"></div>
+                                <div class="post_poll_item_layer1">
+                                    <span class="post_poll_item_text">{{ i[0] }}</span><span class="post_poll_item_count"
+                                    >({{ i[1] | format_number }}) {{ i[2] }}%</span>
+                                </div>
+                                <div class="post_poll_item_layer2">
+                                    <span class="post_poll_item_text">{{ i[0] }}</span><span class="post_poll_item_count"
+                                    >({{ i[1] | format_number }}) {{ i[2] }}%</span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% elif t == "Event" %}
+                    <div class="post_text_card">
+                        <h2>{{ post.attachment.name }}</h2>
+                        <p>{{ post.attachment.time }}</p>
+                        <p>{{ post.attachment.description }}</p>
+                    </div>
+                {% elif t == "Unavailable" %}
+                    <div class="post_text_card centered">
+                        <span>{{ icon("lock") }} This content isn't available right now.</span>
+                    </div>
+                {% elif t == "Post" %}
+                    {{ Post(post.attachment) }}
+                {% else %}
+                    <div class="post_text_card centered">
+                        <span>{{ icon("triangle-exclamation") }} Unsupported attachment.</span>
+                    </div>
+                {% endif %}
             </div>
         {% endif %}
         {% if post.feedback_id is not none %}
             <div class="post_feedback">
                 <div class="reactions">
-                    {{ icon("thumbs-up") }}<span class="feedback_text" title="Reactions">{{ post.reactions.total | format_number }}</span>
+                    {{ icon("thumbs-up") }}<span class="feedback_text" title="Reactions">{{
+                        post.reactions.total | format_number
+                    }}</span>
                 </div>
                 <div class="reactions_popup">
                     {{ icon("thumbs-up") }}<span class="feedback_text">{{ post.reactions.like | format_number }}</span>
@@ -245,7 +262,9 @@
                         }}"
                     {% endif %}
                 >
-                    {{ icon("comment") }}<span class="feedback_text" title="Comments">{{ post.comments_count | format_number }}</span>
+                    {{ icon("comment") }}<span class="feedback_text" title="Comments">{{
+                        post.comments_count | format_number
+                    }}</span>
                 </a>
                 {{ icon("share") }}<span class="feedback_text" title="Shares">{{ post.share_count | format_number }}</span>
                 {% if post.view_count is not none %}

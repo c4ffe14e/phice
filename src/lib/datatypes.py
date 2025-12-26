@@ -50,6 +50,14 @@ class Poll:
 
 
 @dataclass(kw_only=True)
+class PostAlbum:
+    id: str
+    count: int
+    items: list[Photo | Video] = field(default_factory=list)
+    items_left: int = 0
+
+
+@dataclass(kw_only=True)
 class User:
     id: str
     username: str | None
@@ -66,8 +74,8 @@ class Group:
     name: str
 
 
-type PostAttachment = Unsupported | Photo | Video | Event | Unavailable | Poll | AnimatedImage
-type CommentAttachment = Photo | Video | Unsupported | AnimatedImage | None
+type PostAttachment = Photo | Video | AnimatedImage | PostAlbum | Event | Unavailable | Poll | Unsupported | None
+type CommentAttachment = Photo | Video | AnimatedImage | Unsupported | None
 type AlbumItem = Photo | Video
 
 
@@ -108,14 +116,12 @@ class Post:
     text: str = ""
     title: str | None = None
     time: int = 0
-    attachments: list[PostAttachment] = field(default_factory=list)
-    files_left: int = 0
+    attachment: "PostAttachment | Post" = None
     reactions: Reactions = field(default_factory=Reactions)
     comments_count: int = 0
     share_count: int = 0
     view_count: int | None = None
     badges: list[str] = field(default_factory=list)
-    shared_post: "Post | None" = None
     voters_count: int | None = None
     comments: list[Comment] = field(default_factory=list)
 

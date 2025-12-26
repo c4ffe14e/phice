@@ -11,6 +11,7 @@ from .datatypes import (
     Photo,
     Poll,
     Post,
+    PostAlbum,
     Reactions,
     Unavailable,
     Unsupported,
@@ -174,9 +175,6 @@ def parse_post(node: JSON, *, shared: bool = False) -> Post:
         post.feedback_id = feedback["id"]
         post.view_count = feedback["video_view_count"]
 
-    if not shared and node["attached_story"]:
-        post.shared_post = parse_post(node, shared=True)
-
     for i in header["metadata"]:
         match i["__typename"][5:-8]:
             case "FeedStoryLongerTimestamp" | "FeedStoryMinimizedTimestamp":
@@ -195,7 +193,9 @@ def parse_post(node: JSON, *, shared: bool = False) -> Post:
         if suffix := content["comet_sections"]["message_suffix"]:
             text.append(f" --- {suffix['story']['suffix']['text']}")
 
-    if i := content["attachments"]:
+    if not shared and node["attached_story"]:
+        post.attachment = parse_post(node, shared=True)
+    elif i := content["attachments"]:
         styles: JSON = i[0]["styles"]
         attachment: JSON = styles["attachment"]
         media: JSON = attachment.get("media", {})
@@ -210,13 +210,11 @@ def parse_post(node: JSON, *, shared: bool = False) -> Post:
                 else:
                     image_url = media["placeholder_image"]["uri"]
 
-                post.attachments.append(
-                    Photo(
-                        id=media["id"],
-                        url=image_url,
-                        owner_id=author["id"],
-                        alt_text=media.get("accessibility_caption", ""),
-                    )
+                post.attachment = Photo(
+                    id=media["id"],
+                    url=image_url,
+                    owner_id=author["id"],
+                    alt_text=media.get("accessibility_caption", ""),
                 )
             case "UnifiedLightweightVideo":
                 video_fields: JSON = media["videoDeliveryLegacyFields"]
@@ -224,20 +222,23 @@ def parse_post(node: JSON, *, shared: bool = False) -> Post:
                 if not post.from_group:
                     post.post_id = media["id"]
                     post.is_video = True
-                post.attachments.append(
-                    Video(
-                        id=media["id"],
-                        url=video_fields["browser_native_hd_url"] or video_fields["browser_native_sd_url"],
-                        owner_id=media["owner"]["id"],
-                        thumbnail_url=media["preferred_thumbnail"]["image"]["uri"],
-                    )
+                post.attachment = Video(
+                    id=media["id"],
+                    url=video_fields["browser_native_hd_url"] or video_fields["browser_native_sd_url"],
+                    owner_id=media["owner"]["id"],
+                    thumbnail_url=media["preferred_thumbnail"]["image"]["uri"],
                 )
             case "Album" | "AlbumFrame" | "AlbumColumn":
-                attachments: JSON = attachment.get("five_photos_subattachments") or attachment["all_subattachments"]
-                for i in attachments["nodes"]:
+                subattachments: JSON = attachment.get("five_photos_subattachments", attachment["all_subattachments"])
+                post.attachment = PostAlbum(
+                    id=attachment["mediaset_token"],
+                    count=subattachments["count"],
+                )
+
+                for i in subattachments["nodes"]:
                     match i["media"]["__typename"]:
                         case "Photo":
-                            post.attachments.append(
+                            post.attachment.items.append(
                                 Photo(
                                     id=i["media"]["id"],
                                     url=i["media"]["viewer_image"]["uri"],
@@ -246,7 +247,7 @@ def parse_post(node: JSON, *, shared: bool = False) -> Post:
                             )
                         case "Video":
                             video_urls: JSON = i["media"]["video_grid_renderer"]["video"]["videoDeliveryLegacyFields"]
-                            post.attachments.append(
+                            post.attachment.items.append(
                                 Video(
                                     id=i["media"]["id"],
                                     url=video_urls["browser_native_hd_url"] or video_urls["browser_native_sd_url"],
@@ -254,40 +255,33 @@ def parse_post(node: JSON, *, shared: bool = False) -> Post:
                                 )
                             )
                         case _:
-                            post.attachments.append(Unsupported())
-                files_count: int = attachments["count"]
-                if files_count != len(post.attachments):
-                    post.files_left = files_count - len(post.attachments)
+                            pass
+                if post.attachment.count != len(post.attachment.items):
+                    post.attachment.items_left = post.attachment.count - len(post.attachment.items)
             case "Share" | "ShareMedium" | "ShareSevere":
                 text.append(attachment["story_attachment_link_renderer"]["attachment"]["web_link"]["url"])
             case "Event":
-                post.attachments.append(
-                    Event(
-                        name=attachment["target"]["name"],
-                        description=attachment["description"]["text"],
-                        time=attachment["target"]["capitalized_day_time_sentence"],
-                    )
+                post.attachment = Event(
+                    name=attachment["target"]["name"],
+                    description=attachment["description"]["text"],
+                    time=attachment["target"]["capitalized_day_time_sentence"],
                 )
             case "ProfileMedia":
-                post.attachments.append(
-                    Photo(
-                        id=media["id"],
-                        url=media["image"]["uri"],
-                        alt_text=media["accessibility_caption"],
-                    )
+                post.attachment = Photo(
+                    id=media["id"],
+                    url=media["image"]["uri"],
+                    alt_text=media["accessibility_caption"],
                 )
             case "AnimatedImageShare":
-                post.attachments.append(
-                    AnimatedImage(
-                        url=(
-                            media["videoDeliveryLegacyFields"]["browser_native_hd_url"]
-                            or media["videoDeliveryLegacyFields"]["browser_native_sd_url"]
-                        ),
-                    )
+                post.attachment = AnimatedImage(
+                    url=(
+                        media["videoDeliveryLegacyFields"]["browser_native_hd_url"]
+                        or media["videoDeliveryLegacyFields"]["browser_native_sd_url"]
+                    ),
                 )
                 post.view_count = None
             case "Unavailable":
-                post.attachments.append(Unavailable())
+                post.attachment = Unavailable()
             case "TextPoll":
                 voters_count: int = 0
                 options: list[tuple[str, int, int]] = []
@@ -299,12 +293,10 @@ def parse_post(node: JSON, *, shared: bool = False) -> Post:
                     options.append((i["text"], i["profile_voters"]["count"], persent))
 
                 post.voters_count = voters_count
-                post.attachments.append(
-                    Poll(
-                        text=attachment["target"]["poll_question_text"],
-                        total=voters_count,
-                        options=options,
-                    )
+                post.attachment = Poll(
+                    text=attachment["target"]["poll_question_text"],
+                    total=voters_count,
+                    options=options,
                 )
             case "Video":
                 if not post.from_group:
@@ -314,12 +306,10 @@ def parse_post(node: JSON, *, shared: bool = False) -> Post:
                     media["videoDeliveryLegacyFields"]["browser_native_hd_url"]
                     or media["videoDeliveryLegacyFields"]["browser_native_sd_url"]
                 )
-                post.attachments.append(
-                    Video(
-                        id=media["id"],
-                        url=video_url,
-                        owner_id=media["owner"]["id"],
-                    )
+                post.attachment = Video(
+                    id=media["id"],
+                    url=video_url,
+                    owner_id=media["owner"]["id"],
                 )
             case "FBReels":
                 reel: JSON = attachment["style_infos"][0]["fb_shorts_story"]["short_form_video_context"]
@@ -327,15 +317,13 @@ def parse_post(node: JSON, *, shared: bool = False) -> Post:
                     reel["playback_video"]["videoDeliveryLegacyFields"]["browser_native_hd_url"]
                     or reel["playback_video"]["videoDeliveryLegacyFields"]["browser_native_sd_url"]
                 )
-                post.attachments.append(
-                    Video(
-                        id=reel["playback_video"]["id"],
-                        url=reel_url,
-                        owner_id=reel["video_owner"]["id"],
-                    )
+                post.attachment = Video(
+                    id=reel["playback_video"]["id"],
+                    url=reel_url,
+                    owner_id=reel["video_owner"]["id"],
                 )
             case _:
-                post.attachments.append(Unsupported())
+                post.attachment = Unsupported()
     post.text = "\n".join(text)
 
     return post
