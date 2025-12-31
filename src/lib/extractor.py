@@ -14,12 +14,11 @@ from .parsers import parse_album_item, parse_comment, parse_post, parse_search
 from .utils import base64s, catch_rate_limit, urlbasename
 from .wrappers import http_client
 
-COMMENT_FILTERS: defaultdict[str, str] = defaultdict(
+COMMENT_FILTERS: defaultdict[str | None, str] = defaultdict(
     lambda: "RANKED_FILTERED_INTENT_V1",
     {
         "all": "RANKED_UNFILTERED_CHRONOLOGICAL_REPLIES_INTENT_V1",
         "newest": "REVERSE_CHRONOLOGICAL_UNFILTERED_INTENT_V1",
-        "filtered": "RANKED_FILTERED_INTENT_V1",
     },
 )
 SEARCH_TYPES: defaultdict[str, tuple[str, list[str]]] = defaultdict(
@@ -184,7 +183,7 @@ def get_post(
                     pass
         if post_id is None:
             raise NotFoundError("Post not found")
-        sort_type: str | None = None if sort is None else COMMENT_FILTERS[sort]
+        sort_type: str = COMMENT_FILTERS[sort]
 
         post_payload: JSON = api.CometSinglePostDialogContentQuery(post_id, focus)[0]["data"]["node"]
 
@@ -196,7 +195,7 @@ def get_post(
 
         if post.feedback_id is not None:
             comments_payload: JSON
-            if sort_type:
+            if sort_type != "RANKED_FILTERED_INTENT_V1":
                 comments_payload = api.CommentListComponentsRootQuery(
                     post.feedback_id,
                     sort_type,
