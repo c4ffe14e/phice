@@ -36,15 +36,7 @@ def cdn(path: str) -> ResponseReturnValue:
     client_headers: dict[str, str] = {k: v for k, v in request.headers.items() if k.lower() in INCLUDED_REQUEST_HEADERS}
     client: httpx.Client = http_client(headers=client_headers, proxy=get_config().proxy)
     try:
-        cdn_request: httpx.Request = client.build_request(
-            "GET",
-            httpx.URL(
-                scheme="https",
-                host=cdn_host,
-                path=f"/{path}",
-                query=request.query_string,
-            ),
-        )
+        cdn_request: httpx.Request = client.build_request("GET", f"https://{cdn_host}/{path}", params=request.query_string)
         cdn_response: httpx.Response = client.send(cdn_request, stream=True)
     except httpx.RequestError:
         return "", 500
