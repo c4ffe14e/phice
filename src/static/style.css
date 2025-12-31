@@ -307,6 +307,10 @@ input[type="number"] {
     margin: 8px;
 }
 
+.post_attachments > .url {
+    margin: 0 8px 0 8px;
+}
+
 .comment_text_card,
 .post_text_card {
     background-color: var(--background);
@@ -459,7 +463,8 @@ input[type="number"] {
     display: contents;
 }
 
-.expandable_p a {
+.expandable_p a,
+.url {
     display: inline;
     color: var(--accent);
     text-decoration: underline;

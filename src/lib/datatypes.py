@@ -58,6 +58,11 @@ class PostAlbum:
 
 
 @dataclass(kw_only=True)
+class URL:
+    url: str
+
+
+@dataclass(kw_only=True)
 class User:
     id: str
     username: str | None
@@ -74,8 +79,8 @@ class Group:
     name: str
 
 
-type PostAttachment = Photo | Video | AnimatedImage | PostAlbum | Event | Unavailable | Poll | Unsupported | None
-type CommentAttachment = Photo | Video | AnimatedImage | Unsupported | None
+type PostAttachment = Photo | Video | URL | AnimatedImage | PostAlbum | Event | Unavailable | Poll | Unsupported | None
+type CommentAttachment = Photo | Video | URL | AnimatedImage | Unsupported | None
 type AlbumItem = Photo | Video
 
 

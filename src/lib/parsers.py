@@ -4,6 +4,7 @@ import orjson
 
 from .datatypes import (
     JSON,
+    URL,
     AnimatedImage,
     Comment,
     Event,
@@ -259,7 +260,8 @@ def parse_post(node: JSON, *, shared: bool = False) -> Post:
                 if post.attachment.count != len(post.attachment.items):
                     post.attachment.items_left = post.attachment.count - len(post.attachment.items)
             case "Share" | "ShareMedium" | "ShareSevere":
-                text.append(attachment["story_attachment_link_renderer"]["attachment"]["web_link"]["url"])
+                if web_link := attachment["story_attachment_link_renderer"]["attachment"].get("web_link"):
+                    post.attachment = URL(url=web_link["url"])
             case "Event":
                 post.attachment = Event(
                     name=attachment["target"]["name"],

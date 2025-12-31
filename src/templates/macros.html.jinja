@@ -219,6 +219,8 @@
                     </div>
                 {% elif t == "Post" %}
                     {{ Post(post.attachment) }}
+                {% elif t == "URL" %}
+                    <span class="url">{{ post.attachment.url | urlize(target="_blank") }}</span>
                 {% else %}
                     <div class="post_text_card centered">
                         <span>{{ icon("triangle-exclamation") }} Unsupported attachment.</span>
