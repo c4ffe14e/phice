@@ -9,15 +9,10 @@ Undefined = NewType("Undefined", object)
 class ConfigBase:
     @override
     def __setattr__(self, name: str, value: Any, /) -> None:
-        type_hints: dict[str, Any] = get_type_hints(self)
+        type_hints: dict[str, Any] = get_type_hints(self.__class__)
         if not (name in type_hints and isinstance(value, type_hints[name])):
             raise TypeError
         super().__setattr__(name, value)
-
-    def type_check(self) -> None:
-        for k, t in get_type_hints(self).items():
-            if not isinstance(getattr(self, k), t):
-                raise TypeError
 
 
 @dataclass
