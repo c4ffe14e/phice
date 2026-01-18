@@ -102,15 +102,19 @@ def get_profile(username: str, cursor: str | None = None, *, proxy: str | None =
                 item: dict[str, str | None] = {"text": None, "url": None, "type": None}
 
                 renderer: JSON = i["node"]["timeline_context_item"]["renderer"]
+                context_item_title: JSON | None = renderer["context_item"]["title"]
+                if context_item_title is None:
+                    continue
+
                 match renderer["__typename"]:
                     case "WhatsappNumberIntroCardItemRenderer":
                         item["text"] = renderer["wa_number"]
                         item["url"] = renderer["wa_link"]
                     case _:
-                        item["text"] = renderer["context_item"]["title"]["text"]
+                        item["text"] = context_item_title["text"]
                         if subtitle := renderer["context_item"].get("subtitle"):
                             item["text"] += f" {subtitle['text']}"
-                        if ranges := renderer["context_item"]["title"]["ranges"]:
+                        if ranges := context_item_title["ranges"]:
                             url: str | None = ranges[0]["entity"]["url"]
                             if url and url.startswith("https://l.facebook.com/l.php"):
                                 item["url"] = parse_qs(urlparse(url).query)["u"][0]
