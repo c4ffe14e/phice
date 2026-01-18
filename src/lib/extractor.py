@@ -17,7 +17,7 @@ from .wrappers import http_client
 COMMENT_FILTERS: defaultdict[str | None, str] = defaultdict(
     lambda: "RANKED_FILTERED_INTENT_V1",
     {
-        "all": "RANKED_UNFILTERED_CHRONOLOGICAL_REPLIES_INTENT_V1",
+        "all": "CHRONOLOGICAL_UNFILTERED_INTENT_V1",
         "newest": "REVERSE_CHRONOLOGICAL_UNFILTERED_INTENT_V1",
     },
 )
@@ -210,6 +210,10 @@ def get_post(
 
             if focus:
                 main_comment: JSON = comments_payload["edges"][0]["node"]
+                for i in comments_payload["edges"]:
+                    if i["node"]["legacy_fbid"] == focus:
+                        main_comment = i["node"]
+                        break
 
                 post.comments.append(parse_comment(main_comment))
                 if not scroll.cursor:

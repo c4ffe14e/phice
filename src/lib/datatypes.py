@@ -1,7 +1,15 @@
 from dataclasses import dataclass, field
+from enum import IntEnum, auto
 from typing import Any
 
 type JSON = dict[str, Any]
+
+
+class PostType(IntEnum):
+    POST = auto()
+    VIDEO = auto()
+    PHOTO = auto()
+    REEL = auto()
 
 
 @dataclass
@@ -50,7 +58,7 @@ class Poll:
 
 
 @dataclass(kw_only=True)
-class PostAlbum:
+class AttachmentAlbum:
     id: str
     count: int
     items: list[Photo | Video] = field(default_factory=list)
@@ -79,8 +87,7 @@ class Group:
     name: str
 
 
-type PostAttachment = Photo | Video | URL | AnimatedImage | PostAlbum | Event | Unavailable | Poll | Unsupported | None
-type CommentAttachment = Photo | Video | URL | AnimatedImage | Unsupported | None
+type Attachment = Photo | Video | URL | AnimatedImage | AttachmentAlbum | Event | Unavailable | Poll | Unsupported | None
 type AlbumItem = Photo | Video
 
 
@@ -102,12 +109,12 @@ class Comment:
     feedback_id: str
     author: User
     expansion_token: str
-    is_reply: bool
+    depth: int
     text: str = ""
     time: int = 0
     replies_count: int = 0
     reactions: Reactions = field(default_factory=Reactions)
-    attachment: CommentAttachment = None
+    attachment: Attachment = None
 
 
 @dataclass(kw_only=True)
@@ -116,18 +123,17 @@ class Post:
     post_id: str
     author: User
     from_group: Group | None = None
-    is_video: bool = False
+    post_type: PostType = PostType.POST
     feedback_id: str | None = None
     text: str = ""
     title: str | None = None
     time: int = 0
-    attachment: "PostAttachment | Post" = None
+    attachment: "Attachment | Post" = None
     reactions: Reactions = field(default_factory=Reactions)
     comments_count: int = 0
     share_count: int = 0
     view_count: int | None = None
     badges: list[str] = field(default_factory=list)
-    voters_count: int | None = None
     comments: list[Comment] = field(default_factory=list)
 
 
