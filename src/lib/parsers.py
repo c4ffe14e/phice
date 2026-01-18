@@ -1,18 +1,18 @@
 from contextlib import suppress
 
-import orjson
-
 from .datatypes import (
     JSON,
     URL,
     AnimatedImage,
+    Attachment,
+    AttachmentAlbum,
     Comment,
     Event,
     Group,
     Photo,
     Poll,
     Post,
-    PostAlbum,
+    PostType,
     Reactions,
     Unavailable,
     Unsupported,
@@ -43,18 +43,127 @@ def parse_reactions(edges: list[JSON]) -> Reactions:
     return reactions
 
 
+def parse_attachments(style: JSON) -> Attachment:
+    attachment: JSON = style["attachment"]
+    attachment_type: str = style["__typename"][15:-13]
+    media: JSON | None = attachment.get("media", {})
+    if media is None:
+        return None
+
+    video_fields: JSON = media.get("videoDeliveryLegacyFields", {})
+    match attachment_type:
+        case "Photo" | "CoverPhoto" | "ProfileMedia" | "3DPhoto":
+            photo_url: str
+            for k in ("viewer_image", "photo_image", "image", "placeholder_image"):
+                if "uri" in media.get(k, {}):
+                    photo_url = media[k]["uri"]
+                    break
+            else:
+                raise ParsingError("Can't find the url for the photo")
+            owner_id: str | None = None
+            if creation_story := media.get("creation_story"):
+                owner_id = base64s_decode(creation_story["id"])[4:].split(":", 1)[0]
+
+            return Photo(
+                id=media["id"],
+                url=photo_url,
+                owner_id=owner_id,
+                alt_text=media.get("accessibility_caption", ""),
+            )
+        case "UnifiedLightweightVideo" | "Video":
+            return Video(
+                id=media["id"],
+                url=video_fields["browser_native_hd_url"] or video_fields["browser_native_sd_url"],
+                owner_id=media["owner"]["id"],
+                thumbnail_url=media["preferred_thumbnail"]["image"]["uri"],
+            )
+        case "AnimatedImageShare":
+            if not video_fields:
+                return Photo(url=media["animated_image"]["uri"])
+            return AnimatedImage(url=video_fields["browser_native_hd_url"] or video_fields["browser_native_sd_url"])
+        case "Album" | "AlbumFrame" | "AlbumColumn":
+            subattachments: JSON = attachment.get("five_photos_subattachments", attachment["all_subattachments"])
+            subattachments_items: list[Photo | Video] = []
+
+            for i in subattachments["nodes"]:
+                match i["media"]["__typename"]:
+                    case "Photo":
+                        subattachments_items.append(
+                            Photo(
+                                id=i["media"]["id"],
+                                url=i["media"]["viewer_image"]["uri"],
+                                owner_id=i["media"]["owner"]["id"],
+                            )
+                        )
+                    case "Video":
+                        sub_video_fields: JSON = i["media"]["video_grid_renderer"]["video"]["videoDeliveryLegacyFields"]
+                        subattachments_items.append(
+                            Video(
+                                id=i["media"]["id"],
+                                url=sub_video_fields["browser_native_hd_url"] or sub_video_fields["browser_native_sd_url"],
+                                owner_id=i["media"]["owner"]["id"],
+                                thumbnail_url=i["media"]["video_grid_renderer"]["video"]["preferred_thumbnail"]["image"]["uri"],
+                            )
+                        )
+                    case _:
+                        pass
+
+            return AttachmentAlbum(
+                id=attachment["mediaset_token"],
+                count=subattachments["count"],
+                items=subattachments_items,
+                items_left=max(0, subattachments["count"] - len(subattachments_items)),
+            )
+        case "Share" | "ShareMedium" | "ShareSevere":
+            if web_link := attachment["story_attachment_link_renderer"]["attachment"].get("web_link"):
+                return URL(url=web_link["url"])
+        case "Event":
+            return Event(
+                name=attachment["target"]["name"],
+                description=attachment["description"]["text"],
+                time=attachment["target"]["capitalized_day_time_sentence"],
+            )
+        case "TextPoll":
+            poll_nodes: list[JSON] = attachment["target"]["orderedOptions"]["nodes"]
+            voters_count: int = sum(i["profile_voters"]["count"] for i in poll_nodes)
+            options: list[tuple[str, int, int]] = []
+            for i in poll_nodes:
+                persent: int = ((i["profile_voters"]["count"] * 100) // voters_count) if voters_count else 0
+                options.append((i["text"], i["profile_voters"]["count"], persent))
+
+            return Poll(
+                text=attachment["target"]["poll_question_text"],
+                total=voters_count,
+                options=options,
+            )
+        case "Unavailable":
+            return Unavailable()
+        case "Sticker" | "StickerAvatar":
+            return Photo(
+                url=media["image"]["uri"],
+                alt_text=media["label"],
+            )
+        case "Fallback":
+            match media["__typename"]:
+                case "Video":
+                    return Video(id=media["id"], url=None, thumbnail_url=media["fallback_image"]["uri"])
+                case "GenericAttachmentMedia":
+                    pass
+                case _:
+                    return Unsupported()
+        case _:
+            return Unsupported()
+
+    return None
+
+
 def parse_comment(node: JSON) -> Comment:
     author: JSON = node["author"]
     feedback: JSON = node["feedback"]
 
     username: str | None = None
     if author["url"]:
-        if author["url"].startswith("https://www.facebook.com/people/") and (
-            badges := node.get("discoverable_identity_badges_web")
-        ):
-            username = orjson.loads(badges[0]["serialized"])["actor_id"]
-        else:
-            username = urlbasename(author["url"])
+        username = urlbasename(author["url"])
 
     comment: Comment = Comment(
         id=node["legacy_fbid"],
@@ -67,7 +176,7 @@ def parse_comment(node: JSON) -> Comment:
             verified=author.get("is_verified", False),
         ),
         expansion_token=feedback["expansion_info"]["expansion_token"],
-        is_reply=node["depth"] > 0,
+        depth=node["depth"],
         time=node["created_time"],
         replies_count=feedback["replies_fields"]["total_count"],
         reactions=parse_reactions(feedback["top_reactions"]["edges"]),
@@ -76,63 +185,21 @@ def parse_comment(node: JSON) -> Comment:
     if body := node["body"]:
         comment.text = body["text"]
 
-    if i := node["attachments"]:
-        attachments: JSON = i[0]["style_type_renderer"]
-        media: JSON = attachments["attachment"].get("media")
-
-        match attachments["__typename"][15:-13]:
-            case "Photo":
-                comment.attachment = Photo(
-                    id=media["id"],
-                    url=media["image"]["uri"],
-                    alt_text=media["accessibility_caption"],
-                )
-            case "Video":
-                video_url: str = (
-                    media["videoDeliveryLegacyFields"]["browser_native_hd_url"]
-                    or media["videoDeliveryLegacyFields"]["browser_native_sd_url"]
-                )
-                comment.attachment = Video(
-                    id=media["id"],
-                    url=video_url,
-                )
-            case "AnimatedImageShare":
-                if vid := media.get("videoDeliveryLegacyFields"):
-                    comment.attachment = AnimatedImage(url=vid["browser_native_hd_url"] or vid["browser_native_sd_url"])
-                else:
-                    comment.attachment = Photo(
-                        url=media["sticker_image"]["uri"],
-                        id=media["id"],
-                    )
-            case "Sticker" | "StickerAvatar":
-                comment.attachment = Photo(
-                    url=media["image"]["uri"],
-                    alt_text=media["label"],
-                )
-            case "Fallback":
-                pass
-            case _:
-                comment.attachment = Unsupported()
+    if attachments := node["attachments"]:
+        comment.attachment = parse_attachments(attachments[0]["style_type_renderer"])
 
     return comment
 
 
 def parse_post(node: JSON, *, shared: bool = False) -> Post:
-    header: JSON
-    content: JSON
-    story: JSON
+    main_node: JSON = node
+    story: JSON = node["comet_sections"]["content"]["story"]
     if shared:
-        header = node["attached_story"]["comet_sections"]["context_layout"]["story"]["comet_sections"]
-        content = node["comet_sections"]["content"]["story"]["comet_sections"]["attached_story"]["story"]["attached_story"][
-            "comet_sections"
-        ]["attached_story_layout"]["story"]
-        story = node["comet_sections"]["content"]["story"]["attached_story"]
-    else:
-        header = node["comet_sections"]["context_layout"]["story"]["comet_sections"]
-        content = node["comet_sections"]["content"]["story"]
-        story = node
-    author: JSON = story["actors"][0]
-    title: JSON = header["title"]["story"]
+        main_node = main_node["attached_story"]
+        story = story["attached_story"]
+    context_layout: JSON = main_node["comet_sections"]["context_layout"]["story"]["comet_sections"]
+    author: JSON = context_layout["actor_photo"]["story"]["actors"][0]
+    title: JSON = context_layout["title"]["story"]
 
     username: str | None = None
     if author["__typename"] != "InstagramUserV2" and author["url"]:
@@ -148,35 +215,35 @@ def parse_post(node: JSON, *, shared: bool = False) -> Post:
             id=author["id"],
             username=username,
             name=author["name"],
-            picture_url=header["actor_photo"]["story"]["actors"][0]["profile_picture"]["uri"],
+            picture_url=author["profile_picture"]["uri"],
         ),
     )
 
-    if (to := node["to"]) and to["__typename"] == "Group":
+    if title.get("to") and title["to"].get("__typename") == "Group":
         post.from_group = Group(
-            id=to["id"],
-            username=urlbasename(to["url"]),
-            name=to["name"],
+            id=title["to"]["id"],
+            username=urlbasename(title["to"]["url"]),
+            name=title["to"]["name"],
         )
 
     if badge := title.get("comet_sections", {}).get("badge"):
         post.author.verified = badge["__typename"] == "CometFeedUserVerifiedBadgeStrategy"
 
-    if t := title.get("title"):
-        post.title = t["text"]
+    if title_text := title.get("title"):
+        post.title = title_text["text"]
 
-    if feedback_container := node["comet_sections"]["feedback"]["story"]["story_ufi_container"]:
-        feedback: JSON = feedback_container["story"]["feedback_context"]["feedback_target_with_context"][
-            "comet_ufi_summary_and_actions_renderer"
-        ]["feedback"]
+    if not shared:
+        feedback: JSON = node["comet_sections"]["feedback"]["story"]["story_ufi_container"]["story"]["feedback_context"][
+            "feedback_target_with_context"
+        ]["comet_ufi_summary_and_actions_renderer"]["feedback"]
 
+        post.feedback_id = feedback["id"]
         post.reactions = parse_reactions(feedback["top_reactions"]["edges"])
         post.comments_count = feedback["comment_rendering_instance"]["comments"]["total_count"]
         post.share_count = feedback["share_count"]["count"]
-        post.feedback_id = feedback["id"]
         post.view_count = feedback["video_view_count"]
 
-    for i in header["metadata"]:
+    for i in context_layout["metadata"]:
         match i["__typename"][5:-8]:
             case "FeedStoryLongerTimestamp" | "FeedStoryMinimizedTimestamp":
                 post.time = i["story"]["creation_time"]
@@ -186,147 +253,28 @@ def parse_post(node: JSON, *, shared: bool = False) -> Post:
                 pass
 
     text: list[str] = []
-    if message := content["comet_sections"]["message"]:
+    if message := story["comet_sections"]["message"]:
         if rich_message := message.get("rich_message"):
             text.extend(i["text"] for i in rich_message)
         elif post_text := message["story"].get("message"):
             text.append(post_text["text"])
-        if suffix := content["comet_sections"]["message_suffix"]:
-            text.append(f" --- {suffix['story']['suffix']['text']}")
+    if suffix := story["comet_sections"]["message_suffix"]:
+        text.append(f" --- {suffix['story']['suffix']['text']}")
+    post.text = "\n".join(text)
 
     if not shared and node["attached_story"]:
         post.attachment = parse_post(node, shared=True)
-    elif i := content["attachments"]:
-        styles: JSON = i[0]["styles"]
-        attachment: JSON = styles["attachment"]
-        media: JSON = attachment.get("media", {})
+    elif attachments := story["attachments"]:
+        post.attachment = parse_attachments(attachments[0]["styles"])
 
-        match styles["__typename"][15:-13]:
-            case "Photo" | "CoverPhoto" | "3DPhoto":
-                image_url: str
-                if "viewer_image" in media and "uri" in media["viewer_image"]:
-                    image_url = media["viewer_image"]["uri"]
-                elif "photo_image" in media and "uri" in media["photo_image"]:
-                    image_url = media["photo_image"]["uri"]
-                else:
-                    image_url = media["placeholder_image"]["uri"]
-
-                post.attachment = Photo(
-                    id=media["id"],
-                    url=image_url,
-                    owner_id=author["id"],
-                    alt_text=media.get("accessibility_caption", ""),
-                )
-            case "UnifiedLightweightVideo":
-                video_fields: JSON = media["videoDeliveryLegacyFields"]
-
-                if not post.from_group:
-                    post.post_id = media["id"]
-                    post.is_video = True
-                post.attachment = Video(
-                    id=media["id"],
-                    url=video_fields["browser_native_hd_url"] or video_fields["browser_native_sd_url"],
-                    owner_id=media["owner"]["id"],
-                    thumbnail_url=media["preferred_thumbnail"]["image"]["uri"],
-                )
-            case "Album" | "AlbumFrame" | "AlbumColumn":
-                subattachments: JSON = attachment.get("five_photos_subattachments", attachment["all_subattachments"])
-                post.attachment = PostAlbum(
-                    id=attachment["mediaset_token"],
-                    count=subattachments["count"],
-                )
-
-                for i in subattachments["nodes"]:
-                    match i["media"]["__typename"]:
-                        case "Photo":
-                            post.attachment.items.append(
-                                Photo(
-                                    id=i["media"]["id"],
-                                    url=i["media"]["viewer_image"]["uri"],
-                                    owner_id=i["media"]["owner"]["id"],
-                                )
-                            )
-                        case "Video":
-                            video_urls: JSON = i["media"]["video_grid_renderer"]["video"]["videoDeliveryLegacyFields"]
-                            post.attachment.items.append(
-                                Video(
-                                    id=i["media"]["id"],
-                                    url=video_urls["browser_native_hd_url"] or video_urls["browser_native_sd_url"],
-                                    owner_id=i["media"]["owner"]["id"],
-                                )
-                            )
-                        case _:
-                            pass
-                if post.attachment.count != len(post.attachment.items):
-                    post.attachment.items_left = post.attachment.count - len(post.attachment.items)
-            case "Share" | "ShareMedium" | "ShareSevere":
-                if web_link := attachment["story_attachment_link_renderer"]["attachment"].get("web_link"):
-                    post.attachment = URL(url=web_link["url"])
-            case "Event":
-                post.attachment = Event(
-                    name=attachment["target"]["name"],
-                    description=attachment["description"]["text"],
-                    time=attachment["target"]["capitalized_day_time_sentence"],
-                )
-            case "ProfileMedia":
-                post.attachment = Photo(
-                    id=media["id"],
-                    url=media["image"]["uri"],
-                    alt_text=media["accessibility_caption"],
-                )
-            case "AnimatedImageShare":
-                post.attachment = AnimatedImage(
-                    url=(
-                        media["videoDeliveryLegacyFields"]["browser_native_hd_url"]
-                        or media["videoDeliveryLegacyFields"]["browser_native_sd_url"]
-                    ),
-                )
-                post.view_count = None
-            case "Unavailable":
-                post.attachment = Unavailable()
-            case "TextPoll":
-                voters_count: int = 0
-                options: list[tuple[str, int, int]] = []
-
-                for i in attachment["target"]["orderedOptions"]["nodes"]:
-                    voters_count += i["profile_voters"]["count"]
-                for i in attachment["target"]["orderedOptions"]["nodes"]:
-                    persent: int = ((i["profile_voters"]["count"] * 100) // voters_count) if voters_count else 0
-                    options.append((i["text"], i["profile_voters"]["count"], persent))
-
-                post.voters_count = voters_count
-                post.attachment = Poll(
-                    text=attachment["target"]["poll_question_text"],
-                    total=voters_count,
-                    options=options,
-                )
-            case "Video":
-                if not post.from_group:
-                    post.post_id = media["id"]
-                    post.is_video = True
-                video_url: str = (
-                    media["videoDeliveryLegacyFields"]["browser_native_hd_url"]
-                    or media["videoDeliveryLegacyFields"]["browser_native_sd_url"]
-                )
-                post.attachment = Video(
-                    id=media["id"],
-                    url=video_url,
-                    owner_id=media["owner"]["id"],
-                )
-            case "FBReels":
-                reel: JSON = attachment["style_infos"][0]["fb_shorts_story"]["short_form_video_context"]
-                reel_url: str = (
-                    reel["playback_video"]["videoDeliveryLegacyFields"]["browser_native_hd_url"]
-                    or reel["playback_video"]["videoDeliveryLegacyFields"]["browser_native_sd_url"]
-                )
-                post.attachment = Video(
-                    id=reel["playback_video"]["id"],
-                    url=reel_url,
-                    owner_id=reel["video_owner"]["id"],
-                )
-            case _:
-                post.attachment = Unsupported()
-    post.text = "\n".join(text)
+    if isinstance(post.attachment, Video):
+        if "/videos/" in story["wwwURL"]:
+            post.post_type = PostType.VIDEO
+        elif "/reel/" in story["wwwURL"]:
+            post.post_type = PostType.REEL
+        post.post_id = post.attachment.id
+    elif story["wwwURL"].startswith("https://www.facebook.com/photo"):
+        post.post_type = PostType.PHOTO
 
     return post
 

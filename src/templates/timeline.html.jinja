@@ -1,5 +1,5 @@
 {% extends "base.html.jinja" %}
-{% from "macros.html.jinja" import icon, Post, expandable_p %}
+{% from "macros.html.jinja" import icon, Post, expandable %}
 {% from "context_macros.html.jinja" import navigation_buttons with context %}
 
 {% block head %}
@@ -31,7 +31,7 @@
                 </div>
             </div>
             <div id="timeline_intro">
-                {{ expandable_p(feed.description, class="timeline_description") if feed.description }}
+                {{ expandable(feed.description, cls="timeline_description") if feed.description }}
                 {% if feed.info %}
                     <hr />
                     {% for i in feed.info %}

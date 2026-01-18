@@ -13,7 +13,6 @@
 }
 
 * {
-    unicode-bidi: plaintext;
     margin: 0;
 }
 
@@ -162,6 +161,14 @@ input[type="number"] {
     gap: 4px;
 }
 
+.icon {
+    display: inline;
+    width: 16px;
+    height: 16px;
+    fill: var(--accent);
+    vertical-align: sub;
+}
+
 .icon_button {
     padding: 4px;
     border-radius: 4px;
@@ -180,211 +187,25 @@ input[type="number"] {
 }
 
 .post {
-    padding: 0;
-    max-width: 100%;
-}
-
-.post_header {
-    display: flex;
-    padding: 8px 8px 0 8px;
-}
-
-.post_profile_picture {
-    width: 40px;
-    height: 40px;
-    border-radius: 100%;
-    margin-right: 4px;
-}
-
-.comment_time,
-.post_time {
-    font-size: 0.8rem;
-    font-weight: 450;
-    display: block;
-}
-
-.profile_name {
-    font-weight: bold;
-}
-
-.profile_checkmark {
-    margin-left: 4px;
-}
-
-.group_arrow {
-    padding: 0 4px;
-}
-
-.post_text {
-    margin: 8px 8px 0 8px;
-}
-
-.post_attachments {
-    display: flex;
-    flex-wrap: wrap;
-    margin-top: 8px;
-    gap: 4px;
-}
-.post_attachments > * {
-    flex-grow: 1;
-    flex-shrink: 1;
-    flex-basis: calc(33.3333% - 4px);
-}
-.post_attachments > :nth-child(1):nth-last-child(3n+1) {
-    flex-basis: 100%;
-}
-.post_attachments > :nth-child(1):nth-last-child(3n+2),
-.post_attachments > :nth-child(2):nth-last-child(3n+1) {
-    flex-basis: calc(50% - 4px);
-}
-.post_attachments > .post {
-    background-color: var(--background);
-    margin: 0 4px 0 4px;
-}
-.post_attachments > *,
-.post_attachments > a > * {
-    width: 100%;
-}
-.post_attachments > a {
-    display: flex;
-}
-.post_attachments img {
-    object-fit: contain;
-    background-color: black;
-}
-
-.attachments_left {
-    display: block;
-    align-content: center;
-    text-align: center;
-    font-size: 2rem;
-    font-weight: 500;
-    background-color: rgba(0, 0, 0, 0.25);
-}
-
-.post_poll {
-    background-color: var(--background);
-    border-radius: 8px;
-    margin: 4px;
-}
-.post_poll_item {
-    display: flex;
-    position: relative;
-    margin: 8px;
-    border-radius: 8px;
-    background-color: var(--background3);
-    overflow: hidden;
-}
-.post_poll_item_count {
-    margin-left: auto;
-    font-weight: 425;
-}
-.post_poll_item_layer1 {
-    z-index: 1;
-    color: var(--background3);
-}
-.post_poll_item_layer2 {
-    z-index: 2;
-    position: absolute;
-    clip-path: inset(0 0 0 var(--persent, 0));
-}
-.post_poll_item_layer1,
-.post_poll_item_layer2 {
-    display: flex;
-    width: 100%;
-    padding: 4px;
-    box-sizing: border-box;
-}
-.post_poll_item_bg {
-    position: absolute;
-    height: 100%;
-    width: var(--persent, 0);
-    background-color: var(--accent);
-    top: 0;
-    left: 0;
-}
-.post_poll_text {
-    margin: 8px;
-}
-
-.post_attachments > .url {
-    margin: 0 8px 0 8px;
-}
-
-.comment_text_card,
-.post_text_card {
-    background-color: var(--background);
-    border-radius: 8px;
-    padding: 8px;
-    margin: 4px;
-}
-
-.post_text_card h2 {
-    margin: 4px;
-}
-
-.icon {
-    display: inline;
-    width: 16px;
-    height: 16px;
-    fill: var(--accent);
-    vertical-align: sub;
-}
-
-.post_feedback {
-    position: relative;
-    display: flex;
-    align-items: center;
-    padding: 8px;
-}
-
-.post_title {
-    font-weight: 450;
-}
-
-.feedback_text {
-    padding: 0 8px 0 4px;
-}
-
-.comment {
-    display: flex;
-    padding: 8px;
-}
-
-.reply {
-    margin-left: 64px;
-}
-
-.comment_profile_picture {
-    width: 32px;
-    height: 32px;
-    border-radius: 100%;
-    margin-right: 4px;
-}
-
-.comment_footer {
-    display: flex;
-    justify-content: space-between;
-}
-
-.comment_feedback {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-.comment_body {
     display: flex;
     flex-direction: column;
-    width: 100%;
-    gap: 4px;
-}
-
-.comment_attachment {
-    width: 25%;
+    background-color: var(--background2);
     border-radius: 8px;
+    max-width: 100%;
+    gap: 8px;
+    padding: 8px 0px 8px 0px;
+    position: relative;
+    overflow: hidden;
 }
-
+.post_header {
+    display: flex;
+    margin: 0px 8px 0 8px;
+}
+.post_name {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
 .badges {
     display: inline-block;
     background-color: var(--accent);
@@ -393,7 +214,174 @@ input[type="number"] {
     padding: 2px 4px;
     font-size: 0.85rem;
     font-weight: 500;
+}
+.post_profile_picture {
+    width: 40px;
+    height: 40px;
+    border-radius: 100%;
+    margin-right: 4px;
+}
+.post_title {
+    font-weight: 450;
+}
+.profile_name {
+    font-weight: bold;
+}
+.profile_checkmark {
     margin-left: 4px;
+}
+.post_time {
+    font-size: 0.8rem;
+    font-weight: 450;
+}
+.post_text {
+    white-space: pre-wrap;
+    margin: 0 8px 0 8px;
+}
+.post_feedback {
+    display: flex;
+    position: relative;
+    align-items: center;
+    margin: 0 8px 0 8px;
+}
+.post_feedback span {
+    padding-left: 4px;
+    margin-right: 8px;
+}
+.post_link {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+.post > *:not(.post_link) {
+    z-index: 2;
+}
+.post * {
+    pointer-events: auto;
+}
+.post > div,
+.post > .post_header > div,
+.post > .post_header > div > div {
+    pointer-events: none;
+}
+.post_attachment {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+.post_attachment > * {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: calc(33.3333% - 4px);
+}
+.post_attachment > :nth-child(1):nth-last-child(3n+1) {
+    flex-basis: 100%;
+}
+.post_attachment > :nth-child(1):nth-last-child(3n+2),
+.post_attachment > :nth-child(2):nth-last-child(3n+1) {
+    flex-basis: calc(50% - 4px);
+}
+.post_attachment > .post {
+    background-color: var(--background);
+    margin: 0 4px 0 4px;
+}
+.post_attachment > *,
+.post_attachment > a > * {
+    width: 100%;
+}
+.post_attachment > a {
+    display: flex;
+}
+.post_attachment img {
+    object-fit: contain;
+    background-color: black;
+}
+.attachments_left {
+    display: block;
+    align-content: center;
+    text-align: center;
+    font-size: 2rem;
+    font-weight: 500;
+    background-color: rgba(0, 0, 0, 0.25);
+}
+.post_attachment > .url {
+    margin: 0 8px 0 8px;
+}
+
+.comment {
+    display: flex;
+    gap: 4px;
+    background-color: var(--background2);
+    padding: 8px;
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+    margin-left: calc(32px * var(--depth, 0));
+}
+.comment_profile_picture {
+    width: 32px;
+    height: 32px;
+    border-radius: 100%;
+}
+.comment_link {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+.comment > *:not(.comment_link),
+.comment > a > img {
+    z-index: 2;
+}
+.comment_body {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 4px;
+}
+.comment * {
+    pointer-events: auto;
+}
+.comment_body,
+.comment_body > div {
+    pointer-events: none;
+}
+.comment_attachment {
+    display: flex;
+    flex-wrap: wrap;
+    width: 50%;
+    gap: 4px;
+}
+.comment_attachment > *,
+.comment_attachment > a > * {
+    width: 100%;
+}
+.comment_footer {
+    display: flex;
+    justify-content: space-between;
+}
+.comment_time {
+    font-size: 0.8rem;
+    font-weight: 450;
+}
+.comment_feedback {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.comment_feedback span {
+    padding-left: 4px;
+    margin-right: 8px;
+}
+.comment_feedback > :last-child {
+    margin-right: 0;
 }
 
 #whole_screen {
@@ -424,7 +412,7 @@ input[type="number"] {
 .reactions_popup {
     display: flex;
     position: absolute;
-    top: calc(-1rem - 8px);
+    top: -2rem;
     left: 0;
     background-color: var(--background3);
     align-items: center;
@@ -455,29 +443,22 @@ input[type="number"] {
     cursor: help;
 }
 
-.expandable_p {
-    white-space: pre-wrap;
+.read_more,
+.read_more:checked + span,
+.read_more:checked + span + label,
+.read_more:not(:checked) + span + label + span {
+    display: none;
+}
+.read_more + span + label {
+    cursor: pointer;
+    font-weight: bold;
+    user-select: none;
 }
 
-.expandable_p * {
-    display: contents;
-}
-
-.expandable_p a,
 .url {
     display: inline;
     color: var(--accent);
     text-decoration: underline;
-}
-
-.read_more > summary {
-    cursor: pointer;
-    font-weight: bold;
-}
-
-.read_more[open],
-.read_more:not([open]) + .expanded_text {
-    display: none;
 }
 
 .comment_section {
@@ -497,4 +478,81 @@ input[type="number"] {
 .scrollable_text {
     overflow-x: auto;
     width: 100%;
+}
+
+.media_container {
+    display: flex;
+    position: relative;
+    height: 100%;
+    align-items: center;
+    background-color: black;
+}
+.media_container * {
+    width: 100%;
+}
+.media_container .icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 25%;
+    height: 25%;
+}
+
+.message_card {
+    background-color: var(--background);
+    border-radius: 8px;
+    padding: 8px;
+    margin: 4px;
+    text-align: center;
+}
+
+.event {
+    background-color: var(--background);
+    border-radius: 8px;
+    padding: 8px;
+    margin: 4px;
+}
+
+.poll {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background-color: var(--background);
+    border-radius: 8px;
+    padding: 8px;
+    margin: 0 4px 0 4px;
+}
+.poll_item {
+    display: flex;
+    background-color: var(--background3);
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+}
+.poll_item_layer1 {
+    z-index: 1;
+    color: var(--background3);
+}
+.poll_item_layer2 {
+    z-index: 2;
+    position: absolute;
+    clip-path: inset(0 0 0 var(--persent, 0));
+    pointer-events: none;
+}
+.poll_item_layer1,
+.poll_item_layer2 {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    padding: 4px;
+    box-sizing: border-box;
+}
+.poll_item_bg {
+    position: absolute;
+    height: 100%;
+    width: var(--persent, 0);
+    background-color: var(--accent);
+    top: 0;
+    left: 0;
 }

@@ -17,7 +17,7 @@ from .wrappers import http_client
 COMMENT_FILTERS: defaultdict[str | None, str] = defaultdict(
     lambda: "RANKED_FILTERED_INTENT_V1",
     {
-        "all": "RANKED_UNFILTERED_CHRONOLOGICAL_REPLIES_INTENT_V1",
+        "all": "CHRONOLOGICAL_UNFILTERED_INTENT_V1",
         "newest": "REVERSE_CHRONOLOGICAL_UNFILTERED_INTENT_V1",
     },
 )
@@ -102,15 +102,19 @@ def get_profile(username: str, cursor: str | None = None, *, proxy: str | None =
                 item: dict[str, str | None] = {"text": None, "url": None, "type": None}
 
                 renderer: JSON = i["node"]["timeline_context_item"]["renderer"]
+                context_item_title: JSON | None = renderer["context_item"]["title"]
+                if context_item_title is None:
+                    continue
+
                 match renderer["__typename"]:
                     case "WhatsappNumberIntroCardItemRenderer":
                         item["text"] = renderer["wa_number"]
                         item["url"] = renderer["wa_link"]
                     case _:
-                        item["text"] = renderer["context_item"]["title"]["text"]
+                        item["text"] = context_item_title["text"]
                         if subtitle := renderer["context_item"].get("subtitle"):
                             item["text"] += f" {subtitle['text']}"
-                        if ranges := renderer["context_item"]["title"]["ranges"]:
+                        if ranges := context_item_title["ranges"]:
                             url: str | None = ranges[0]["entity"]["url"]
                             if url and url.startswith("https://l.facebook.com/l.php"):
                                 item["url"] = parse_qs(urlparse(url).query)["u"][0]
@@ -210,6 +214,10 @@ def get_post(
 
             if focus:
                 main_comment: JSON = comments_payload["edges"][0]["node"]
+                for i in comments_payload["edges"]:
+                    if i["node"]["legacy_fbid"] == focus:
+                        main_comment = i["node"]
+                        break
 
                 post.comments.append(parse_comment(main_comment))
                 if not scroll.cursor:

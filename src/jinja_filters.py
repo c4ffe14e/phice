@@ -11,11 +11,7 @@ from .flask_utils import get_user_settings
 def _proxy_sub(m: re.Match[str]) -> str:
     url: ParseResult = urlparse(m.group(0))
 
-    endpoint: str = "cdn.cdn"
-    if url.hostname and url.hostname.startswith("external."):
-        endpoint = "cdn.cdn_external"
-
-    return f"{url_for(endpoint, path=url.path[1:], _external=True)}?{url.query}"
+    return f"{url_for('cdn.cdn', host=url.hostname, path=url.path[1:], _external=True)}?{url.query}"
 
 
 def proxy(s: str) -> str:

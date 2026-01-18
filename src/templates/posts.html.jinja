@@ -20,7 +20,7 @@
             </form>
             {% if post.comments %}
                 {% for i in post.comments %}
-                    {{ Comment(i, "reply" if i.is_reply else "") }}
+                    {{ Comment(i) }}
                 {% endfor %}
                 {% if scroll.rate_limited %}
                     <span class="centered card">Couldn't fetch rest of comments rate-limited.</span>
