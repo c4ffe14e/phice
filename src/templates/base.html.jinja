@@ -1,4 +1,5 @@
-{% from "macros.html.jinja" import icon %}
+{%- from "macros.html.jinja" import icon -%}
+
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -6,10 +7,10 @@
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>{{ title + " | " if title }}Phice</title>
         <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
-        {% set theme = get_user_settings().theme %}
-        {% if theme in THEMES %}
+        {%- set theme = get_user_settings().theme -%}
+        {% if theme != "default" and theme in THEMES -%}
             <link rel="stylesheet" href="{{ url_for('static', filename='themes/{}.css'.format(theme)) }}" />
-        {% endif %}
+        {%- endif %}
         <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}" />
         <meta property="og:title" content="{{ title }}" />
         <meta property="og:type" content="website" />
@@ -17,10 +18,10 @@
         <meta property="og:url" content="{{ request.base_url }}" />
         <meta property="og:description" content="A lightweight privacy-friendly alternative front-end for Facebook" />
         <meta property="og:site_name" content="Phice" />
-        {% if get_config().enable_rss and request.endpoint in ("profile.profile", "groups.groups") %}
+        {% if get_config().enable_rss and request.endpoint in ("profile.profile", "groups.groups") -%}
             <link rel="alternate" type="application/rss+xml" href="?rss=1" title="RSS Feed" />
-        {% endif %}
-        {% block head %}{% endblock head %}
+        {%- endif %}
+        {% block head -%}{%- endblock head %}
     </head>
     <body>
         <header>
@@ -30,16 +31,14 @@
             </a>
             <div id="header_buttons">
                 <a href="{{ url_for('home.home') }}" title="Search">{{ icon("search") }}</a>
-                {% if get_config().enable_rss and request.endpoint in ("profile.profile", "groups.groups") %}
+                {% if get_config().enable_rss and request.endpoint in ("profile.profile", "groups.groups") -%}
                     <a href="?rss=1" title="RSS Feed">{{ icon("rss") }}</a>
-                {% endif %}
+                {%- endif %}
                 <a href="{{ 'https://facebook.com' + request.full_path }}" title="View on Facebook">{{ icon("facebook") }}</a>
                 <a href="https://codeberg.org/c4ffe14e/phice" title="Source Code">{{ icon("code") }}</a>
                 <a href="{{ url_for('settings.settings') }}" title="Settings">{{ icon("gear") }}</a>
             </div>
         </header>
-        <main>
-            {% block content %}{% endblock content %}
-        </main>
+        <main>{% block content -%}{%- endblock content %}</main>
     </body>
 </html>
