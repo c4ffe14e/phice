@@ -24,7 +24,7 @@ def post_url(p: Post) -> str:
 
 
 def juuid() -> str:
-    return uuid.uuid6().hex
+    return uuid.uuid1().hex
 
 
 THEMES: dict[str, str] = {
