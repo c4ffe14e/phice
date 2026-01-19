@@ -220,6 +220,7 @@ input[type="number"] {
     height: 40px;
     border-radius: 100%;
     margin-right: 4px;
+    user-select: none;
 }
 .post_title {
     font-weight: 450;
@@ -326,6 +327,7 @@ input[type="number"] {
     width: 32px;
     height: 32px;
     border-radius: 100%;
+    user-select: none;
 }
 .comment_link {
     display: block;
