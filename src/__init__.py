@@ -22,6 +22,7 @@ def create_app(config_file: Path | None) -> Flask:
     app.config["user_settings"] = UserSettings(**custom_config.get("default_user_settings", {}))
     app.url_map.strict_slashes = False
     app.jinja_options["autoescape"] = True
+    app.jinja_env.policies["urlize.rel"] = "noreferrer nofollow"
     app.jinja_env.filters.update(FILTERS)
     app.jinja_env.globals.update(GLOBALS)
 

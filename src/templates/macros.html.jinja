@@ -108,7 +108,6 @@
     {%- elif t == "Post" -%}
         {{ Post(node) }}
     {%- elif t == "URL" -%}
-        <span class="url">{{ node.url | urlize(target="_blank") }}</span>
     {%- else -%}
         {{ message("Unsupported attachment.", "triangle-exclamation") }}
     {%- endif %}
@@ -122,12 +121,12 @@
             <span>{{ text[:250] }}</span>{#--#}
             <label for="{{ t }}">...Read more</label>
         {%- endif -%}
-        <span>{{ text }}</span>{#--#}
+        <span>{{ text | urlize }}</span>{#--#}
     </span>
 {%- endmacro %}
 
-{% macro Comment(comment) %}
-<article class="comment" style="--depth: {{ comment.depth }}">
+{% macro Comment(comment) -%}
+    <article class="comment" style="--depth: {{ comment.depth }}">
         {% if comment.depth == 0 -%}
             <a
                 class="comment_link"
@@ -162,7 +161,7 @@
                 }}
             </div>
             {% if comment.text -%}
-                <div dir="auto">{{ expandable(comment.text) }}</div>
+                <div class="comment_text" dir="auto">{{ expandable(comment.text) }}</div>
             {%- endif %}
             {% if comment.attachment -%}
                 <div class="comment_attachment">{{ attachment(comment.attachment) }}</div>
@@ -187,7 +186,7 @@
             </div>
         </div>
     </article>
-{% endmacro %}
+{%- endmacro %}
 
 {% macro Post(post, expanded=false) -%}
     <article class="post">

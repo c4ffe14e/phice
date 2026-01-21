@@ -273,6 +273,9 @@ def parse_post(node: JSON, *, shared: bool = False) -> Post:
         elif "/reel/" in story["wwwURL"]:
             post.post_type = PostType.REEL
         post.post_id = post.attachment.id
+    elif isinstance(post.attachment, URL):
+        if post.attachment.url not in post.text and post.attachment.url[:-1] not in post.text:
+            post.text += f"\n{post.attachment.url}"
     elif story["wwwURL"].startswith("https://www.facebook.com/photo"):
         post.post_type = PostType.PHOTO
 

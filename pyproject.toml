@@ -55,7 +55,7 @@ select = [
     "T10",
     "FURB",
 ]
-ignore = ["TRY003"]
+ignore = ["TRY003", "RUF067"]
 
 [tool.ruff.lint.per-file-ignores]
 "src/lib/api.py" = ["N802"]
