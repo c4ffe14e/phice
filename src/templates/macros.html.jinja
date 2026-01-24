@@ -54,9 +54,9 @@
 
 {% macro event(node) -%}
     <div class="event">
-        <h3>{{ node.name }}</h3>
+        <h3>{{ node.title }}</h3>
         <p>{{ node.time }}</p>
-        <p>{{ node.description }}</p>
+        {% if node.description is not none %}<p>{{ node.description }}</p>{% endif %}
     </div>
 {%- endmacro %}
 

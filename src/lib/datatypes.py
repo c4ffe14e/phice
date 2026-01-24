@@ -45,9 +45,9 @@ class AnimatedImage:
 
 @dataclass(kw_only=True)
 class Event:
-    name: str
-    description: str
+    title: str
     time: str
+    description: str | None = None
 
 
 @dataclass(kw_only=True)

@@ -513,6 +513,7 @@ input[type="number"] {
     border-radius: 8px;
     padding: 8px;
     margin: 4px;
+    text-align: center;
 }
 
 .poll {

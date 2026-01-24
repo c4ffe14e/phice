@@ -119,9 +119,9 @@ def parse_attachments(style: JSON) -> Attachment:
                 return URL(url=web_link["url"])
         case "Event":
             return Event(
-                name=attachment["target"]["name"],
-                description=attachment["description"]["text"],
+                title=attachment["target"]["name"],
                 time=attachment["target"]["capitalized_day_time_sentence"],
+                description=attachment["description"]["text"],
             )
         case "TextPoll":
             poll_nodes: list[JSON] = attachment["target"]["orderedOptions"]["nodes"]
@@ -151,6 +151,12 @@ def parse_attachments(style: JSON) -> Attachment:
                     pass
                 case _:
                     return Unsupported()
+        case "LifeEvent":
+            prop: list[JSON] = attachment["properties"]
+            return Event(
+                title=prop[0]["value"]["text"],
+                time=prop[1]["value"]["text"],
+            )
         case _:
             return Unsupported()
 
