@@ -200,10 +200,13 @@ def get_post(
         post_payload: JSON = api.CometSinglePostDialogContentQuery(post_id, focus)[0]["data"]["node"]
 
         post = parse_post(post_payload)
+
         if isinstance(post.attachment, Photo) and "dst-jpg_" in post.attachment.url:
-            post.attachment.url = api.CometFeedStoryMenuQuery(
-                post_id,
-            )[0]["data"]["feed_unit"]["nfx_action_menu_items"][0]["story"]["attachments"][0]["media"]["download_link"][:-5]
+            menu_buttons: list[JSON] = api.CometFeedStoryMenuQuery(post_id)[0]["data"]["feed_unit"]["nfx_action_menu_items"]
+            for i in menu_buttons:
+                if i["__typename"] == "PhotoDownloadMenuItem":
+                    post.attachment.url = i["story"]["attachments"][0]["media"]["download_link"][:-5]
+                    break
 
         if post.feedback_id is not None:
             comments_payload: JSON
