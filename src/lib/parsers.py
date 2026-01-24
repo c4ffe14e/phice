@@ -147,7 +147,7 @@ def parse_attachments(style: JSON) -> Attachment:
             match media["__typename"]:
                 case "Video":
                     return Video(id=media["id"], url=None, thumbnail_url=media["fallback_image"]["uri"])
-                case "GenericAttachmentMedia":
+                case "GenericAttachmentMedia" | "ProfilePicAttachmentMedia":
                     pass
                 case _:
                     return Unsupported()
