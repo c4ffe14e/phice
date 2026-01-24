@@ -119,7 +119,7 @@
         {%- if text | length > 250 and not expanded -%}
             {%- set t = uuid() -%}
             <input class="read_more" type="checkbox" id="{{ t }}" autocomplete="off" />{#--#}
-            <span>{{ text[:250] }}</span>{#--#}
+            <span>{{ text[:250] | urlize }}</span>{#--#}
             <label for="{{ t }}">...Read more</label>
         {%- endif -%}
         <span>{{ text | urlize }}</span>{#--#}
