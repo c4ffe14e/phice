@@ -143,8 +143,8 @@ class Feed:
     token: str
     name: str
     verified: bool = False
-    picture_url: str | None = None
-    cover_url: str | None = None
+    profile_photo: Photo | None = None
+    cover_photo: Photo | None = None
     description: str = ""
     followers: str | None = None
     following: str | None = None

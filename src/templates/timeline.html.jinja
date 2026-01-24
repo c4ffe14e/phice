@@ -1,5 +1,5 @@
 {% extends "base.html.jinja" %}
-{% from "macros.html.jinja" import icon, Post, expandable %}
+{% from "macros.html.jinja" import icon, Post, expandable, photo %}
 {% from "context_macros.html.jinja" import navigation_buttons with context %}
 
 {% block head %}
@@ -7,17 +7,11 @@
 {% endblock head %}
 
 {% block content %}
-    <div id="timeline_cover">
-        {% if feed.cover_url %}
-            <img src="{{ feed.cover_url | proxy }}" alt="{{ feed.name }}'s profile cover" />
-        {% endif %}
-    </div>
+    <div class="timeline_cover">{{ photo(feed.cover_photo) if feed.cover_photo is not none }}</div>
     <div id="timeline">
         <section id="timeline_info" class="card">
             <div id="timeline_header">
-                {% if not feed.is_group %}
-                    <img id="timeline_picture" src="{{ feed.picture_url | proxy }}" alt="{{ feed.name }}'s profile picture" />
-                {% endif %}
+                {{ photo(feed.profile_photo, cls="timeline_picture") if feed.profile_photo is not none }}
                 <div>
                     <span class="profile_name">{{ feed.name }}</span>{{
                         icon("circle-check", class="profile_checkmark") if feed.verified

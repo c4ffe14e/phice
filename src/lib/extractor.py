@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 from urllib.parse import ParseResult, parse_qs, urlencode, urlparse
 
 import orjson
@@ -79,11 +79,19 @@ def get_profile(username: str, cursor: str | None = None, *, proxy: str | None =
         if private := header["wem_private_sharing_bundle"]["private_sharing_control_model_for_user"]:
             feed.is_private = private["private_sharing_enabled"]
 
-        if profile_pic := header["profilePicLarge"]:
-            feed.picture_url = profile_pic["uri"]
+        if header["profilePhoto"] and header["profilePicLarge"]:
+            feed.profile_photo = Photo(
+                url=header["profilePicLarge"]["uri"],
+                id=header["profilePhoto"]["id"],
+                alt_text=f"{header['name']}'s profile picture",
+            )
 
-        if cover := header["cover_photo"]:
-            feed.cover_url = cover["photo"]["image"]["uri"]
+        if cover_photo := (cast("JSON | None", header["cover_photo"]) or {}).get("photo"):
+            feed.cover_photo = Photo(
+                url=cover_photo["image"]["uri"],
+                id=cover_photo["id"],
+                alt_text=f"{header['name']}'s cover picture",
+            )
 
         if header["profile_social_context"]:
             for i in header["profile_social_context"]["content"]:
@@ -287,8 +295,12 @@ def get_group(token: str, cursor: str | None = None, *, proxy: str | None = None
             is_private=side_panel["privacy_info"]["label"]["text"] == "Private",
         )
 
-        if cover := header["cover_renderer"]["cover_photo_content"]:
-            feed.cover_url = cover["photo"]["image"]["uri"]
+        if cover_photo := (cast("JSON | None", header["cover_renderer"]["cover_photo_content"]) or {}).get("photo"):
+            feed.cover_photo = Photo(
+                url=cover_photo["image"]["uri"],
+                id=cover_photo["id"],
+                alt_text=f"{header['name']}'s cover picture",
+            )
 
         if locations := side_panel["group_locations"]:
             feed.info = [

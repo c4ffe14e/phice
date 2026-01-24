@@ -29,9 +29,10 @@
     {% endif -%}
 {%- endmacro %}
 
-{% macro photo(node) -%}
+{% macro photo(node, cls="") -%}
     <a {% if node.id %}href="{{ url_for('posts.photo', fbid=node.id) }}"{% endif %}>
         <img
+            class="{{ cls }}"
             src="{{ node.url | proxy }}"
             alt="{{ node.alt_text }}"
         />
