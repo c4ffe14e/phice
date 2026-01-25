@@ -504,7 +504,7 @@ input[type="number"] {
     background-color: var(--background);
     border-radius: 8px;
     padding: 8px;
-    margin: 4px;
+    margin: 0 4px 0 4px;
     text-align: center;
 }
 
@@ -512,7 +512,7 @@ input[type="number"] {
     background-color: var(--background);
     border-radius: 8px;
     padding: 8px;
-    margin: 4px;
+    margin: 0 4px 0 4px;
     text-align: center;
 }
 
