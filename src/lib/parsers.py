@@ -82,7 +82,7 @@ def parse_attachments(style: JSON) -> Attachment:
                 return Photo(url=media["animated_image"]["uri"])
             return AnimatedImage(url=video_fields["browser_native_hd_url"] or video_fields["browser_native_sd_url"])
         case "Album" | "AlbumFrame" | "AlbumColumn":
-            subattachments: JSON = attachment.get("five_photos_subattachments", attachment["all_subattachments"])
+            subattachments: JSON = attachment.get("all_subattachments", attachment.get("five_photos_subattachments", {}))
             subattachments_items: list[Photo | Video] = []
 
             for i in subattachments["nodes"]:
