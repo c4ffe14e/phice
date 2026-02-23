@@ -204,7 +204,7 @@ def parse_post(node: JSON, *, shared: bool = False) -> Post:
         main_node = main_node["attached_story"]
         story = story["attached_story"]
     context_layout: JSON = main_node["comet_sections"]["context_layout"]["story"]["comet_sections"]
-    author: JSON = context_layout["actor_photo"]["story"]["actors"][0]
+    author: JSON = story["actors"][0]
     title: JSON = context_layout["title"]["story"]
 
     username: str | None = None
